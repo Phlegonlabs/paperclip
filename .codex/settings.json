@@ -1,0 +1,55 @@
+{
+  "hooks": {
+  "on_agent_message": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .codex/hooks/prompt-guard.sh"
+        }
+      ]
+    }
+  ],
+  "pre_tool_call": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .codex/hooks/push-confirm.sh",
+          "timeout": 10
+        }
+      ]
+    },
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .codex/hooks/worktree-guard.sh",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "post_tool_call": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .codex/hooks/doc-drift-guard.sh"
+        }
+      ]
+    }
+  ],
+  "on_session_end": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .codex/hooks/session-end-reminder.sh",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}
+}

@@ -1,0 +1,60 @@
+{
+  "hooks": {
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .claude/hooks/prompt-guard.sh"
+        }
+      ]
+    }
+  ],
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .claude/hooks/push-confirm.sh",
+          "timeout": 10,
+          "statusMessage": "Checking push confirmation policy..."
+        }
+      ]
+    },
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .claude/hooks/worktree-guard.sh",
+          "timeout": 10,
+          "statusMessage": "Checking workflow files..."
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Edit|Write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .claude/hooks/doc-drift-guard.sh"
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash .claude/hooks/session-end-reminder.sh",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}
+}

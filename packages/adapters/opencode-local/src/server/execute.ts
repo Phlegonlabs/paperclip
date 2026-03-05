@@ -138,7 +138,7 @@ async function ensureOpenCodeSkillsInjected(onLog: AdapterExecutionContext["onLo
     if (existing) continue;
 
     try {
-      await fs.symlink(source, target);
+      await fs.symlink(source, target, process.platform === "win32" ? "junction" : undefined);
       await onLog(
         "stderr",
         `[paperclip] Injected OpenCode skill "${entry.name}" into ${skillsHome}\n`,

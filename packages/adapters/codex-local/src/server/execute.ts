@@ -90,7 +90,7 @@ async function ensureCodexSkillsInjected(onLog: AdapterExecutionContext["onLog"]
     if (existing) continue;
 
     try {
-      await fs.symlink(source, target);
+      await fs.symlink(source, target, process.platform === "win32" ? "junction" : undefined);
       await onLog(
         "stderr",
         `[paperclip] Injected Codex skill "${entry.name}" into ${skillsHome}\n`,

@@ -1,0 +1,67 @@
+{
+  "$schema": "paperclip.hooks.claude.v1",
+  "$description": "Repo-local Claude Code hook settings for Paperclip.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "$id": "workflow-prompt-guard",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/prompt-guard.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "$id": "workflow-pre-bash-guard",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/push-confirm.sh",
+            "timeout": 10,
+            "statusMessage": "Checking push confirmation policy..."
+          }
+        ]
+      },
+      {
+        "$id": "workflow-pre-write-guard",
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/worktree-guard.sh",
+            "timeout": 10,
+            "statusMessage": "Checking workflow files..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "$id": "workflow-post-write-guard",
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/doc-drift-guard.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "$id": "workflow-session-reminder",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-end-reminder.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

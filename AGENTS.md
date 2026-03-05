@@ -140,3 +140,41 @@ A change is done when all are true:
 2. Typecheck, tests, and build pass
 3. Contracts are synced across db/shared/server/ui
 4. Docs updated when behavior or commands change
+
+## 11. Workflow Docs
+
+The repo now also carries internal workflow/bootstrap docs in `docs/`:
+
+- `docs/architecture.md` — current repo/runtime snapshot
+- `docs/plans.md` — milestone and readiness plan
+- `docs/implement.md` — execution rules
+- `docs/secrets.md` — internal secrets baseline
+- `docs/documentation.md` — documentation ownership map
+- `docs/design.md` — current UI/system design baseline
+
+Use these as implementation-support artifacts. They do not replace the product contract in `doc/SPEC-implementation.md`.
+
+Live workflow state lives in:
+
+- `tasks/todo.md`
+- `tasks/lessons.md`
+
+## 12. Execution Workflow
+
+1. Read the product/spec docs first, then the workflow docs.
+2. Keep `tasks/todo.md` aligned with active follow-up work.
+3. Execute one task at a time with one atomic commit boundary.
+4. Do not auto-commit or auto-push.
+5. Confirm before any push.
+6. When runtime behavior, commands, secrets, or contributor process changes, update the relevant workflow docs in the same task.
+
+## 13. Hooks
+
+Repo-local hook assets are managed by:
+
+```sh
+bash scripts/setup-hooks.sh --pm pnpm --project-dir . --platform both
+```
+
+Canonical hook sources live under `scripts/hooks/`.
+Installed copies live under `.claude/hooks/` and `.codex/hooks/`.

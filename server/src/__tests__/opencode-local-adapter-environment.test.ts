@@ -64,18 +64,32 @@ describe("opencode_local environment diagnostics", () => {
   it("classifies ProviderModelNotFoundError probe output as model-unavailable warning", async () => {
     const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-env-probe-cwd-"));
     const binDir = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-opencode-env-probe-bin-"));
-    const fakeOpencode = path.join(binDir, "opencode");
     const script = [
-      "#!/bin/sh",
-      "echo 'ProviderModelNotFoundError: ProviderModelNotFoundError' 1>&2",
-      "echo 'data: { providerID: \"openai\", modelID: \"gpt-5.3-codex\", suggestions: [] }' 1>&2",
-      "exit 1",
+      "console.error('ProviderModelNotFoundError: ProviderModelNotFoundError');",
+      "console.error('data: { providerID: \"openai\", modelID: \"gpt-5.3-codex\", suggestions: [] }');",
+      "process.exit(1);",
       "",
     ].join("\n");
 
     try {
-      await fs.writeFile(fakeOpencode, script, "utf8");
-      await fs.chmod(fakeOpencode, 0o755);
+      const fakeOpencode =
+        process.platform === "win32"
+          ? path.join(binDir, "opencode.cmd")
+          : path.join(binDir, "opencode");
+
+      if (process.platform === "win32") {
+        const scriptPath = path.join(binDir, "opencode.js");
+        const wrapper = `@echo off\r\n"${process.execPath}" "${scriptPath}" %*\r\n`;
+        await fs.writeFile(scriptPath, script, "utf8");
+        await fs.writeFile(fakeOpencode, wrapper, "utf8");
+      } else {
+        const shellScript = [
+          "#!/usr/bin/env node",
+          script,
+        ].join("\n");
+        await fs.writeFile(fakeOpencode, shellScript, "utf8");
+        await fs.chmod(fakeOpencode, 0o755);
+      }
 
       const result = await testEnvironment({
         companyId: "company-1",

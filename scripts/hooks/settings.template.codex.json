@@ -1,0 +1,62 @@
+{
+  "$schema": "paperclip.hooks.codex.v1",
+  "$description": "Repo-local Codex hook settings for Paperclip.",
+  "hooks": {
+    "on_agent_message": [
+      {
+        "$id": "workflow-prompt-guard",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/prompt-guard.sh"
+          }
+        ]
+      }
+    ],
+    "pre_tool_call": [
+      {
+        "$id": "workflow-pre-bash-guard",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/push-confirm.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "$id": "workflow-pre-write-guard",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/worktree-guard.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "post_tool_call": [
+      {
+        "$id": "workflow-post-write-guard",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/doc-drift-guard.sh"
+          }
+        ]
+      }
+    ],
+    "on_session_end": [
+      {
+        "$id": "workflow-session-reminder",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .codex/hooks/session-end-reminder.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
