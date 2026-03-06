@@ -19,6 +19,14 @@ export function defaultStorageConfig(): StorageConfig {
       prefix: "",
       forcePathStyle: false,
     },
+    r2: {
+      bucket: "paperclip",
+      accountId: undefined,
+      endpoint: undefined,
+      accessKeyId: undefined,
+      secretAccessKey: undefined,
+      prefix: "",
+    },
   };
 }
 
@@ -37,6 +45,11 @@ export async function promptStorage(current?: StorageConfig): Promise<StorageCon
         value: "s3" as const,
         label: "S3 compatible",
         hint: "for cloud/object storage backends",
+      },
+      {
+        value: "r2" as const,
+        label: "Cloudflare R2",
+        hint: "for Cloudflare object storage",
       },
     ],
     initialValue: base.provider,
@@ -68,6 +81,91 @@ export async function promptStorage(current?: StorageConfig): Promise<StorageCon
         baseDir: baseDir.trim(),
       },
       s3: base.s3,
+      r2: base.r2,
+    };
+  }
+
+  if (provider === "r2") {
+    const bucket = await p.text({
+      message: "R2 bucket",
+      defaultValue: base.r2.bucket || "paperclip",
+      placeholder: "paperclip",
+      validate: (value) => {
+        if (!value || value.trim().length === 0) return "Bucket is required";
+      },
+    });
+
+    if (p.isCancel(bucket)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    const accountId = await p.text({
+      message: "R2 account ID (optional if endpoint is set elsewhere)",
+      defaultValue: base.r2.accountId ?? "",
+      placeholder: "cloudflare-account-id",
+    });
+
+    if (p.isCancel(accountId)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    const endpoint = await p.text({
+      message: "R2 endpoint (optional)",
+      defaultValue: base.r2.endpoint ?? "",
+      placeholder: "https://<account-id>.r2.cloudflarestorage.com",
+    });
+
+    if (p.isCancel(endpoint)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    const accessKeyId = await p.text({
+      message: "R2 access key ID (optional)",
+      defaultValue: base.r2.accessKeyId ?? "",
+      placeholder: "access-key-id",
+    });
+
+    if (p.isCancel(accessKeyId)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    const secretAccessKey = await p.password({
+      message: "R2 secret access key (optional)",
+      mask: "•",
+    });
+
+    if (p.isCancel(secretAccessKey)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    const prefix = await p.text({
+      message: "Object key prefix (optional)",
+      defaultValue: base.r2.prefix ?? "",
+      placeholder: "paperclip/",
+    });
+
+    if (p.isCancel(prefix)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+
+    return {
+      provider: "r2",
+      localDisk: base.localDisk,
+      s3: base.s3,
+      r2: {
+        bucket: bucket.trim(),
+        accountId: accountId.trim() || undefined,
+        endpoint: endpoint.trim() || undefined,
+        accessKeyId: accessKeyId.trim() || undefined,
+        secretAccessKey: secretAccessKey.trim() || undefined,
+        prefix: prefix.trim(),
+      },
     };
   }
 
@@ -141,6 +239,7 @@ export async function promptStorage(current?: StorageConfig): Promise<StorageCon
       prefix: prefix.trim(),
       forcePathStyle,
     },
+    r2: base.r2,
   };
 }
 

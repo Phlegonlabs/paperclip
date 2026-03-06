@@ -29,6 +29,10 @@ import { AsciiArtAnimation } from "./AsciiArtAnimation";
 import { ChoosePathButton } from "./PathInstructionsModal";
 import { HintIcon } from "./agent-config-primitives";
 import {
+  DEFAULT_ONBOARDING_TASK_DESCRIPTION,
+  DEFAULT_ONBOARDING_TASK_TITLE
+} from "./onboarding-defaults";
+import {
   Building2,
   Bot,
   Code,
@@ -57,11 +61,16 @@ type AdapterType =
   | "http"
   | "openclaw";
 
-const DEFAULT_TASK_DESCRIPTION = `Setup yourself as the CEO. Use the ceo persona found here: [https://github.com/paperclipai/companies/blob/main/default/ceo/AGENTS.md](https://github.com/paperclipai/companies/blob/main/default/ceo/AGENTS.md)
-
-Ensure you have a folder agents/ceo and then download this AGENTS.md as well as the sibling HEARTBEAT.md, SOUL.md, and TOOLS.md. and set that AGENTS.md as the path to your agents instruction file
-
-And after you've finished that, hire yourself a Founding Engineer agent`;
+function readCreatedInstructionsFilePath(value: unknown): string | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const candidate = record.instructionsFilePath;
+  return typeof candidate === "string" && candidate.trim().length > 0
+    ? candidate
+    : null;
+}
 
 export function OnboardingWizard() {
   const { onboardingOpen, onboardingOptions, closeOnboarding } = useDialog();
@@ -96,11 +105,13 @@ export function OnboardingWizard() {
   const [forceUnsetAnthropicApiKey, setForceUnsetAnthropicApiKey] =
     useState(false);
   const [unsetAnthropicLoading, setUnsetAnthropicLoading] = useState(false);
+  const [createdInstructionsFilePath, setCreatedInstructionsFilePath] =
+    useState<string | null>(null);
 
   // Step 3
-  const [taskTitle, setTaskTitle] = useState("Create your CEO HEARTBEAT.md");
+  const [taskTitle, setTaskTitle] = useState(DEFAULT_ONBOARDING_TASK_TITLE);
   const [taskDescription, setTaskDescription] = useState(
-    DEFAULT_TASK_DESCRIPTION
+    DEFAULT_ONBOARDING_TASK_DESCRIPTION
   );
 
   // Auto-grow textarea for task description
@@ -201,8 +212,9 @@ export function OnboardingWizard() {
     setAdapterEnvLoading(false);
     setForceUnsetAnthropicApiKey(false);
     setUnsetAnthropicLoading(false);
-    setTaskTitle("Create your CEO HEARTBEAT.md");
-    setTaskDescription(DEFAULT_TASK_DESCRIPTION);
+    setCreatedInstructionsFilePath(null);
+    setTaskTitle(DEFAULT_ONBOARDING_TASK_TITLE);
+    setTaskDescription(DEFAULT_ONBOARDING_TASK_DESCRIPTION);
     setCreatedCompanyId(null);
     setCreatedCompanyPrefix(null);
     setCreatedAgentId(null);
@@ -335,6 +347,9 @@ export function OnboardingWizard() {
           }
         }
       });
+      setCreatedInstructionsFilePath(
+        readCreatedInstructionsFilePath(agent.adapterConfig)
+      );
       setCreatedAgentId(agent.id);
       queryClient.invalidateQueries({
         queryKey: queryKeys.agents.list(createdCompanyId)
@@ -364,6 +379,12 @@ export function OnboardingWizard() {
           : {};
       env.ANTHROPIC_API_KEY = { type: "plain", value: "" };
       config.env = env;
+      if (
+        createdInstructionsFilePath &&
+        typeof config.instructionsFilePath !== "string"
+      ) {
+        config.instructionsFilePath = createdInstructionsFilePath;
+      }
       return config;
     })();
 
@@ -373,6 +394,9 @@ export function OnboardingWizard() {
           createdAgentId,
           { adapterConfig: configWithUnset },
           createdCompanyId
+        );
+        setCreatedInstructionsFilePath(
+          readCreatedInstructionsFilePath(configWithUnset)
         );
         queryClient.invalidateQueries({
           queryKey: queryKeys.agents.list(createdCompanyId)

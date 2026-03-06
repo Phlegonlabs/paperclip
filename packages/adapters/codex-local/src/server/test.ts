@@ -99,20 +99,15 @@ export async function testEnvironment(
 
   const configOpenAiKey = env.OPENAI_API_KEY;
   const hostOpenAiKey = process.env.OPENAI_API_KEY;
-  if (isNonEmpty(configOpenAiKey) || isNonEmpty(hostOpenAiKey)) {
+  const hasOpenAiKey = isNonEmpty(configOpenAiKey) || isNonEmpty(hostOpenAiKey);
+  let shouldWarnAboutMissingOpenAiKey = !hasOpenAiKey;
+  if (hasOpenAiKey) {
     const source = isNonEmpty(configOpenAiKey) ? "adapter config env" : "server environment";
     checks.push({
       code: "codex_openai_api_key_present",
       level: "info",
       message: "OPENAI_API_KEY is set for Codex authentication.",
       detail: `Detected in ${source}.`,
-    });
-  } else {
-    checks.push({
-      code: "codex_openai_api_key_missing",
-      level: "warn",
-      message: "OPENAI_API_KEY is not set. Codex runs may fail until authentication is configured.",
-      hint: "Set OPENAI_API_KEY in adapter env, shell environment, or Codex auth configuration.",
     });
   }
 
@@ -181,6 +176,15 @@ export async function testEnvironment(
       } else if ((probe.exitCode ?? 1) === 0) {
         const summary = parsed.summary.trim();
         const hasHello = /\bhello\b/i.test(summary);
+        if (!hasOpenAiKey) {
+          shouldWarnAboutMissingOpenAiKey = false;
+          checks.push({
+            code: "codex_auth_ready_without_openai_api_key",
+            level: "info",
+            message: "Codex authentication is ready without OPENAI_API_KEY.",
+            detail: "Hello probe succeeded via Codex CLI login/session auth.",
+          });
+        }
         checks.push({
           code: hasHello ? "codex_hello_probe_passed" : "codex_hello_probe_unexpected_output",
           level: hasHello ? "info" : "warn",
@@ -195,6 +199,7 @@ export async function testEnvironment(
               }),
         });
       } else if (CODEX_AUTH_REQUIRED_RE.test(authEvidence)) {
+        shouldWarnAboutMissingOpenAiKey = false;
         checks.push({
           code: "codex_hello_probe_auth_required",
           level: "warn",
@@ -212,6 +217,15 @@ export async function testEnvironment(
         });
       }
     }
+  }
+
+  if (shouldWarnAboutMissingOpenAiKey) {
+    checks.push({
+      code: "codex_openai_api_key_missing",
+      level: "warn",
+      message: "OPENAI_API_KEY is not set, and Codex authentication could not be verified automatically.",
+      hint: "Set OPENAI_API_KEY in adapter env, shell environment, or Codex auth configuration.",
+    });
   }
 
   return {

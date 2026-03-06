@@ -1,5 +1,7 @@
 import { EventEmitter } from "node:events";
 import type { LiveEvent, LiveEventType } from "@paperclipai/shared";
+import { publishLiveEventToControlPlane } from "../control-plane-client.js";
+import { logger } from "../middleware/logger.js";
 
 type LiveEventPayload = Record<string, unknown>;
 type LiveEventListener = (event: LiveEvent) => void;
@@ -31,6 +33,9 @@ export function publishLiveEvent(input: {
 }) {
   const event = toLiveEvent(input);
   emitter.emit(input.companyId, event);
+  void publishLiveEventToControlPlane(event).catch((err) => {
+    logger.warn({ err, companyId: event.companyId, type: event.type }, "failed to publish live event to control plane");
+  });
   return event;
 }
 

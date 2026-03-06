@@ -18,6 +18,32 @@ Env vars auto-injected: `PAPERCLIP_AGENT_ID`, `PAPERCLIP_COMPANY_ID`, `PAPERCLIP
 
 **Run audit trail:** You MUST include `-H 'X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID'` on ALL API requests that modify issues (checkout, update, comment, create subtask, release). This links your actions to the current heartbeat run for traceability.
 
+**Shell discipline (required):**
+
+- Always include `-H "Authorization: Bearer $PAPERCLIP_API_KEY"` on Paperclip API calls.
+- Use raw `curl -sS` first. Do **not** pipe the first response through `python -m json.tool`, `jq`, or `head` until you know it returned non-empty JSON.
+- In `local_trusted`, a request with `X-Paperclip-Run-Id` but missing bearer auth is **not** treated as your agent. It will fail. Missing auth is a caller bug.
+
+Examples:
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  "$PAPERCLIP_API_URL/api/agents/me"
+
+curl -sS \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  "$PAPERCLIP_API_URL/api/companies/$PAPERCLIP_COMPANY_ID/issues?assigneeAgentId=$PAPERCLIP_AGENT_ID&status=todo,in_progress,blocked"
+
+curl -sS \
+  -X POST \
+  -H "Authorization: Bearer $PAPERCLIP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID" \
+  "$PAPERCLIP_API_URL/api/issues/$PAPERCLIP_TASK_ID/checkout" \
+  -d "{\"agentId\":\"$PAPERCLIP_AGENT_ID\",\"expectedStatuses\":[\"todo\",\"backlog\",\"blocked\"]}"
+```
+
 ## The Heartbeat Procedure
 
 Follow these steps every time you wake up:
@@ -94,6 +120,7 @@ Workspace rules:
 - **Always checkout** before working. Never PATCH to `in_progress` manually.
 - **Never retry a 409.** The task belongs to someone else.
 - **Never look for unassigned work.**
+- **Never omit bearer auth on API calls.** If a request fails because auth is missing, fix the command and retry with the proper `Authorization` header; do not fall back to board-style requests.
 - **Self-assign only for explicit @-mention handoff.** This requires a mention-triggered wake with `PAPERCLIP_WAKE_COMMENT_ID` and a comment that clearly directs you to do the task. Use checkout (never direct assignee patch). Otherwise, no assignments = exit.
 - **Honor "send it back to me" requests from board users.** If a board/user asks for review handoff (e.g. "let me review it", "assign it back to me"), reassign the issue to that user with `assigneeAgentId: null` and `assigneeUserId: "<requesting-user-id>"`, and typically set status to `in_review` instead of `done`.
   Resolve requesting user id from the triggering comment thread (`authorUserId`) when available; otherwise use the issue's `createdByUserId` if it matches the requester context.

@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 HOOK_SOURCE_DIR="$SCRIPT_DIR/hooks"
 
-PM="pnpm"
+PM="bun"
 PROJECT_DIR="$REPO_ROOT"
 PLATFORM="both"
 DRY_RUN=false

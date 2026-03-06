@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Paperclip Control Plane</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Segoe UI", sans-serif;
+        background: #f4f7fb;
+        color: #0f172a;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top, rgba(14, 116, 144, 0.15), transparent 40%),
+          linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+      }
+
+      main {
+        width: min(680px, calc(100vw - 48px));
+        padding: 32px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+      }
+
+      code {
+        font-family: "Cascadia Code", monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Paperclip Control Plane Skeleton</h1>
+      <p>This Worker package is reserved for same-origin static assets, <code>/api</code> routes, and realtime Durable Objects.</p>
+      <p>Implemented today: <code>/api/health</code> and the company realtime WebSocket skeleton at <code>/api/companies/:companyId/events/ws</code>.</p>
+    </main>
+  </body>
+</html>
+

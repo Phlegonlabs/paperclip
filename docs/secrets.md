@@ -23,6 +23,8 @@ This document captures the internal secrets and sensitive configuration baseline
   Optional direct key override.
 - `PAPERCLIP_SECRETS_MASTER_KEY_FILE`
   Optional file-path override for the local encrypted provider.
+- `PAPERCLIP_CLOUDFLARE_SECRETS_KEY_ENV_NAME`
+  Optional override for the env var name that the `cloudflare_encrypted` provider reads.
 - `PAPERCLIP_SECRETS_STRICT_MODE`
   Enables strict enforcement for sensitive env values.
 
@@ -35,6 +37,8 @@ These are sensitive operational settings even when they are not secrets:
 - `HOST`
 - `PAPERCLIP_HOME`
 - `PAPERCLIP_INSTANCE_ID`
+- `PAPERCLIP_CONTROL_PLANE_URL`
+- `PAPERCLIP_CONTROL_PLANE_INTERNAL_TOKEN`
 
 ### Adapter/provider keys currently relevant to this repo
 
@@ -44,6 +48,20 @@ These are sensitive operational settings even when they are not secrets:
   Used by Codex-local, OpenCode/OpenClaw-related flows, and related environment checks.
 - `CURSOR_API_KEY`
   Relevant when Cursor-backed runtime paths are enabled.
+
+### Cloud storage and edge deployment
+
+- `PAPERCLIP_STORAGE_PROVIDER`
+- `PAPERCLIP_STORAGE_R2_BUCKET`
+- `PAPERCLIP_STORAGE_R2_ACCOUNT_ID`
+- `PAPERCLIP_STORAGE_R2_ENDPOINT`
+- `PAPERCLIP_STORAGE_R2_ACCESS_KEY_ID`
+- `PAPERCLIP_STORAGE_R2_SECRET_ACCESS_KEY`
+- `PAPERCLIP_STORAGE_R2_PREFIX`
+- `BETTER_AUTH_SECRET`
+- `PAPERCLIP_AGENT_JWT_SECRET`
+- `PAPERCLIP_AGENT_JWT_ISSUER`
+- `PAPERCLIP_AGENT_JWT_AUDIENCE`
 
 ## Storage and Secret Material
 
@@ -56,7 +74,9 @@ These are sensitive operational settings even when they are not secrets:
 ### Cloud posture
 
 - Database, storage, and secrets configuration must be treated as deployment inputs rather than repo state.
-- Storage providers may require external object-store credentials; document those in deployment-specific docs when the actual provider is chosen.
+- `cloudflare_encrypted` is now a first-class provider contract for control-plane deployments that keep the master key in Worker environment secrets instead of a local key file.
+- `r2` is now a first-class provider contract for Cloudflare object storage.
+- The current same-origin Worker realtime slice also requires a shared internal bearer token between `server/` and `apps/control-plane/` so the server can publish canonical live events and sync minimal access snapshots into Worker D1.
 
 ## Operational Guidance
 
@@ -64,19 +84,20 @@ These are sensitive operational settings even when they are not secrets:
 
 - Leave `DATABASE_URL` unset to use embedded PostgreSQL.
 - Keep local key material out of git.
-- Use `pnpm paperclipai configure --section secrets` or `pnpm paperclipai onboard` rather than hand-editing secret config where possible.
+- Use `bun run paperclipai -- configure --section secrets` or `bun run paperclipai -- onboard` rather than hand-editing secret config where possible.
 
 ### Migration of inline secrets
 
 If agent configs still contain inline sensitive env values:
 
-- Dry run: `pnpm secrets:migrate-inline-env`
-- Apply: `pnpm secrets:migrate-inline-env --apply`
+- Dry run: `bun run secrets:migrate-inline-env`
+- Apply: `bun run secrets:migrate-inline-env --apply`
 
 ### Rotation and incident response
 
 - Revoke or replace any exposed provider key immediately.
 - Rotate the local encrypted master key only with a documented migration plan.
+- Rotate the Cloudflare env-backed master key only with a documented re-encryption plan for stored secret versions.
 - Record any secret-handling lessons or hazards in `tasks/lessons.md`.
 
 ## Scope Boundary

@@ -15,11 +15,11 @@ This walks you through setup, configures your environment, and gets Paperclip ru
 
 ## Local Development
 
-Prerequisites: Node.js 20+ and pnpm 9+.
+Prerequisites: Node.js 20+ and Bun 1.3+.
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts the API server and UI at [http://localhost:3100](http://localhost:3100).
@@ -29,7 +29,7 @@ No external database required — Paperclip uses an embedded PostgreSQL instance
 ## One-Command Bootstrap
 
 ```sh
-pnpm paperclipai run
+bun run paperclipai -- run
 ```
 
 This auto-onboards if config is missing, runs health checks with auto-repair, and starts the server.

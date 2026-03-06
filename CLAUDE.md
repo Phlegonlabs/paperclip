@@ -27,13 +27,13 @@ Claude working in this repository should follow the current repo contract and th
 
 ## Commands
 
-- Install: `pnpm install`
-- Dev: `pnpm dev`
-- Typecheck: `pnpm -r typecheck`
-- Tests: `pnpm test:run`
-- Build: `pnpm build`
-
-If `pnpm` is not directly on `PATH`, use `corepack pnpm ...` as a local fallback.
+- Install: `bun install`
+- Dev: `bun run dev`
+- Server only: `bun run dev:server`
+- Cloudflare control plane: `bun run dev:control-plane`
+- Typecheck: `bun run typecheck`
+- Tests: `bun run test:run`
+- Build: `bun run build`
 
 ## Documentation Split
 

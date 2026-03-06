@@ -23,6 +23,7 @@ Before making changes, read in this order:
 ## 3. Repo Map
 
 - `server/`: Express REST API and orchestration services
+- `apps/control-plane/`: Bun + Cloudflare Worker control-plane migration target
 - `ui/`: React + Vite board UI
 - `packages/db/`: Drizzle schema, migrations, DB clients
 - `packages/shared/`: shared types, constants, validators, API path constants
@@ -30,11 +31,11 @@ Before making changes, read in this order:
 
 ## 4. Dev Setup (Auto DB)
 
-Use embedded PGlite in dev by leaving `DATABASE_URL` unset.
+Use embedded PostgreSQL in dev by leaving `DATABASE_URL` unset.
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts:
@@ -53,7 +54,7 @@ Reset local dev DB:
 
 ```sh
 rm -rf data/pglite
-pnpm dev
+bun run dev
 ```
 
 ## 5. Core Engineering Rules
@@ -87,27 +88,27 @@ When changing data model:
 3. Generate migration:
 
 ```sh
-pnpm db:generate
+bun run db:generate
 ```
 
 4. Validate compile:
 
 ```sh
-pnpm -r typecheck
+bun run typecheck
 ```
 
 Notes:
 - `packages/db/drizzle.config.ts` reads compiled schema from `dist/schema/*.js`
-- `pnpm db:generate` compiles `packages/db` first
+- `bun run db:generate` compiles `packages/db` first
 
 ## 7. Verification Before Hand-off
 
 Run this full check before claiming done:
 
 ```sh
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run typecheck
+bun run test:run
+bun run build
 ```
 
 If anything cannot be run, explicitly report what was not run and why.
@@ -173,7 +174,7 @@ Live workflow state lives in:
 Repo-local hook assets are managed by:
 
 ```sh
-bash scripts/setup-hooks.sh --pm pnpm --project-dir . --platform both
+bash scripts/setup-hooks.sh --pm bun --project-dir . --platform both
 ```
 
 Canonical hook sources live under `scripts/hooks/`.

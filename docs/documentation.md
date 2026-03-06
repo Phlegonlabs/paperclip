@@ -2,6 +2,16 @@
 
 This file explains which documentation layer owns which kind of truth in this repository.
 
+## Status
+
+- Canonical workspace/package-manager contract: Bun
+- Canonical repo identity for project-owned links: `Phlegonlabs/paperclip` on `master`
+- Active production runtime: `server/`
+- Active migration runtime: `apps/control-plane/` for same-origin Cloudflare delivery
+- Current local DB default remains embedded PostgreSQL when `DATABASE_URL` is unset; cross-platform migration path handling must stay filesystem-safe on Windows
+- Repo-tracked default agent templates now live under `agents/<role>/`; onboarding and local-agent defaults should reference that library, not old external GitHub persona repos
+- Current high-risk drift area: older docs that still describe the repo with pre-Bun commands or describe full Cloudflare `/api` cutover as already complete instead of the current realtime-only edge slice
+
 ## Documentation Layers
 
 ### `doc/`
@@ -102,4 +112,4 @@ Before closing a task that changes behavior, check whether the change affects:
 - `doc/TASKS.md` vs current issue/project implementation
 - public architecture summaries vs actual package/runtime boundaries
 - secrets guidance spread across `doc/`, public `docs/`, and runtime code
-- commands that assume direct `pnpm` availability on every machine
+- commands that still assume an old package-manager setup on every machine

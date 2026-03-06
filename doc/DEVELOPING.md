@@ -13,15 +13,15 @@ Current implementation status:
 ## Prerequisites
 
 - Node.js 20+
-- pnpm 9+
+- Bun 1.3+
 
 ## Start Dev
 
 From repo root:
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts:
@@ -32,7 +32,7 @@ This starts:
 Tailscale/private-auth dev mode:
 
 ```sh
-pnpm dev --tailscale-auth
+bun run dev --tailscale-auth
 ```
 
 This runs dev as `authenticated/private` and binds the server to `0.0.0.0` for private-network access.
@@ -40,7 +40,7 @@ This runs dev as `authenticated/private` and binds the server to `0.0.0.0` for p
 Allow additional private hostnames (for example custom Tailscale hostnames):
 
 ```sh
-pnpm paperclipai allowed-hostname dotta-macbook-pro
+bun run paperclipai -- allowed-hostname dotta-macbook-pro
 ```
 
 ## One-Command Local Run
@@ -48,7 +48,7 @@ pnpm paperclipai allowed-hostname dotta-macbook-pro
 For a first-time local install, you can bootstrap and run in one command:
 
 ```sh
-pnpm paperclipai run
+bun run paperclipai -- run
 ```
 
 `paperclipai run` does:
@@ -89,7 +89,7 @@ The server will automatically use embedded PostgreSQL and persist data at:
 Override home and instance:
 
 ```sh
-PAPERCLIP_HOME=/custom/path PAPERCLIP_INSTANCE_ID=dev pnpm paperclipai run
+PAPERCLIP_HOME=/custom/path PAPERCLIP_INSTANCE_ID=dev bun run paperclipai -- run
 ```
 
 No Docker or external database is required for this mode.
@@ -103,7 +103,7 @@ For local development, the default storage provider is `local_disk`, which persi
 Configure storage provider/settings:
 
 ```sh
-pnpm paperclipai configure --section storage
+bun run paperclipai -- configure --section storage
 ```
 
 ## Default Agent Workspaces
@@ -134,7 +134,7 @@ To wipe local dev data and start fresh:
 
 ```sh
 rm -rf ~/.paperclip/instances/default/db
-pnpm dev
+bun run dev
 ```
 
 ## Optional: Use External Postgres
@@ -153,15 +153,15 @@ Paperclip can run automatic DB backups on a timer. Defaults:
 Configure these in:
 
 ```sh
-pnpm paperclipai configure --section database
+bun run paperclipai -- configure --section database
 ```
 
 Run a one-off backup manually:
 
 ```sh
-pnpm paperclipai db:backup
+bun run paperclipai -- db:backup
 # or:
-pnpm db:backup
+bun run db:backup
 ```
 
 Environment overrides:
@@ -189,15 +189,15 @@ When strict mode is enabled, sensitive env keys (for example `*_API_KEY`, `*_TOK
 
 CLI configuration support:
 
-- `pnpm paperclipai onboard` writes a default `secrets` config section (`local_encrypted`, strict mode off, key file path set) and creates a local key file when needed.
-- `pnpm paperclipai configure --section secrets` lets you update provider/strict mode/key path and creates the local key file when needed.
-- `pnpm paperclipai doctor` validates secrets adapter configuration and can create a missing local key file with `--repair`.
+- `bun run paperclipai -- onboard` writes a default `secrets` config section (`local_encrypted`, strict mode off, key file path set) and creates a local key file when needed.
+- `bun run paperclipai -- configure --section secrets` lets you update provider/strict mode/key path and creates the local key file when needed.
+- `bun run paperclipai -- doctor` validates secrets adapter configuration and can create a missing local key file with `--repair`.
 
 Migration helper for existing inline env secrets:
 
 ```sh
-pnpm secrets:migrate-inline-env         # dry run
-pnpm secrets:migrate-inline-env --apply # apply migration
+bun run secrets:migrate-inline-env         # dry run
+bun run secrets:migrate-inline-env --apply # apply migration
 ```
 
 ## Company Deletion Toggle
@@ -220,22 +220,22 @@ Paperclip CLI now includes client-side control-plane commands in addition to set
 Quick examples:
 
 ```sh
-pnpm paperclipai issue list --company-id <company-id>
-pnpm paperclipai issue create --company-id <company-id> --title "Investigate checkout conflict"
-pnpm paperclipai issue update <issue-id> --status in_progress --comment "Started triage"
+bun run paperclipai -- issue list --company-id <company-id>
+bun run paperclipai -- issue create --company-id <company-id> --title "Investigate checkout conflict"
+bun run paperclipai -- issue update <issue-id> --status in_progress --comment "Started triage"
 ```
 
 Set defaults once with context profiles:
 
 ```sh
-pnpm paperclipai context set --api-base http://localhost:3100 --company-id <company-id>
+bun run paperclipai -- context set --api-base http://localhost:3100 --company-id <company-id>
 ```
 
 Then run commands without repeating flags:
 
 ```sh
-pnpm paperclipai issue list
-pnpm paperclipai dashboard get
+bun run paperclipai -- issue list
+bun run paperclipai -- dashboard get
 ```
 
 See full command reference in `doc/CLI.md`.
@@ -255,7 +255,7 @@ Agent-oriented invite onboarding now exposes machine-readable API docs:
 Run the end-to-end OpenClaw join smoke harness:
 
 ```sh
-pnpm smoke:openclaw-join
+bun run smoke:openclaw-join
 ```
 
 What it validates:
@@ -280,7 +280,7 @@ Optional auth flags (for authenticated mode):
 To boot OpenClaw in Docker and print a host-browser dashboard URL in one command:
 
 ```sh
-pnpm smoke:openclaw-docker-ui
+bun run smoke:openclaw-docker-ui
 ```
 
 This script lives at `scripts/smoke/openclaw-docker-ui.sh` and automates clone/build/config/start for Compose-based local OpenClaw UI testing.

@@ -5,7 +5,7 @@ This document covers how to build and publish the `paperclipai` CLI package to n
 ## Prerequisites
 
 - Node.js 20+
-- pnpm 9.15+
+- Bun 1.3+
 - An npm account with publish access to the `paperclipai` package
 - Logged in to npm: `npm login`
 
@@ -14,11 +14,10 @@ This document covers how to build and publish the `paperclipai` CLI package to n
 The fastest way to publish — bumps version, builds, publishes, restores, commits, and tags in one shot:
 
 ```bash
-./scripts/bump-and-publish.sh patch          # 0.1.1 → 0.1.2
-./scripts/bump-and-publish.sh minor          # 0.1.1 → 0.2.0
-./scripts/bump-and-publish.sh major          # 0.1.1 → 1.0.0
-./scripts/bump-and-publish.sh 2.0.0          # set explicit version
-./scripts/bump-and-publish.sh patch --dry-run # everything except npm publish
+./scripts/release.sh patch           # 0.2.7 → 0.2.8
+./scripts/release.sh minor           # 0.2.7 → 0.3.0
+./scripts/release.sh major           # 0.2.7 → 1.0.0
+./scripts/release.sh patch --dry-run # everything except npm publish
 ```
 
 The script runs all 6 steps below in order. It requires a clean working tree and an active `npm login` session (unless `--dry-run`). After it finishes, push:
@@ -34,11 +33,11 @@ If you prefer to run each step individually:
 ### Quick Reference
 
 ```bash
-# Bump version
-./scripts/version-bump.sh patch      # 0.1.0 → 0.1.1
+# Release
+./scripts/release.sh patch
 
 # Build
-./scripts/build-npm.sh
+bun run build:npm
 
 # Preview what will be published
 cd cli && npm pack --dry-run
@@ -52,24 +51,17 @@ mv cli/package.dev.json cli/package.json
 
 ## Step-by-Step
 
-### 1. Bump the version
+### 1. Version and changelog
 
 ```bash
-./scripts/version-bump.sh <patch|minor|major|X.Y.Z>
+bun run changeset
+bun run version-packages
 ```
 
-This updates the version in two places:
-
-- `cli/package.json` — the source of truth
-- `cli/src/index.ts` — the Commander `.version()` call
-
-Examples:
+Or use the one-shot release script:
 
 ```bash
-./scripts/version-bump.sh patch    # 0.1.0 → 0.1.1
-./scripts/version-bump.sh minor    # 0.1.0 → 0.2.0
-./scripts/version-bump.sh major    # 0.1.0 → 1.0.0
-./scripts/version-bump.sh 1.2.3   # set explicit version
+./scripts/release.sh <patch|minor|major> [--dry-run]
 ```
 
 ### 2. Build
@@ -78,10 +70,10 @@ Examples:
 ./scripts/build-npm.sh
 ```
 
-The build script runs five steps:
+The build script runs six steps:
 
 1. **Forbidden token check** — scans tracked files for tokens listed in `.git/hooks/forbidden-tokens.txt`. If the file is missing (e.g. on a contributor's machine), the check passes silently. The script never prints which tokens it's searching for.
-2. **TypeScript type-check** — runs `pnpm -r typecheck` across all workspace packages.
+2. **TypeScript type-check** — runs `bun run typecheck` across all workspace packages.
 3. **esbuild bundle** — bundles the CLI entry point (`cli/src/index.ts`) and all workspace package code (`@paperclipai/*`) into a single file at `cli/dist/index.js`. External npm dependencies (express, postgres, etc.) are kept as regular imports.
 4. **Generate publishable package.json** — replaces `cli/package.json` with a version that has real npm dependency ranges instead of `workspace:*` references (see [package.dev.json](#packagedevjson) below).
 5. **Summary** — prints the bundle size and next steps.
@@ -135,7 +127,7 @@ During development, `cli/package.json` contains `workspace:*` references like:
 }
 ```
 
-These tell pnpm to resolve those packages from the local monorepo. This is great for development but **npm doesn't understand `workspace:*`** — publishing with these references would cause install failures for users.
+These tell Bun to resolve those packages from the local monorepo. This is great for development but **npm doesn't understand `workspace:*`** — publishing with these references would cause install failures for users.
 
 The build script solves this with a two-file swap:
 
@@ -183,14 +175,15 @@ The build process includes the same forbidden-token check used by the git pre-co
 Run the check standalone:
 
 ```bash
-pnpm check:tokens
+bun run check:tokens
 ```
 
 ## npm scripts reference
 
 | Script | Command | Description |
 |---|---|---|
-| `bump-and-publish` | `pnpm bump-and-publish <type>` | One-command bump + build + publish + commit + tag |
-| `build:npm` | `pnpm build:npm` | Full build (check + typecheck + bundle + package.json) |
-| `version:bump` | `pnpm version:bump <type>` | Bump CLI version |
-| `check:tokens` | `pnpm check:tokens` | Run forbidden token check only |
+| `release` | `./scripts/release.sh <patch\|minor\|major> [--dry-run]` | One-command version + build + publish + commit + tag |
+| `build:npm` | `bun run build:npm` | Full build (check + typecheck + bundle + package.json) |
+| `changeset` | `bun run changeset` | Create or edit a release changeset |
+| `version-packages` | `bun run version-packages` | Apply changesets to package versions |
+| `check:tokens` | `bun run check:tokens` | Run forbidden token check only |

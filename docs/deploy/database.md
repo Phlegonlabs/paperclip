@@ -10,7 +10,7 @@ Paperclip uses PostgreSQL via Drizzle ORM. There are three ways to run the datab
 Zero config. If you don't set `DATABASE_URL`, the server starts an embedded PostgreSQL instance automatically.
 
 ```sh
-pnpm dev
+bun run dev
 ```
 
 On first start, the server:

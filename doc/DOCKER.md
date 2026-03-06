@@ -1,6 +1,6 @@
 # Docker Quickstart
 
-Run Paperclip in Docker without installing Node or pnpm locally.
+Run Paperclip in Docker without installing Node or Bun locally.
 
 ## One-liner (build + run)
 

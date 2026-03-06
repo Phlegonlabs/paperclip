@@ -72,7 +72,6 @@ PACKAGES=$(node -e "
 const { readdirSync, readFileSync } = require('fs');
 const { resolve } = require('path');
 const root = '$REPO_ROOT';
-const wsYaml = readFileSync(resolve(root, 'pnpm-workspace.yaml'), 'utf8');
 const dirs = ['packages/shared', 'packages/adapter-utils', 'packages/db',
   'packages/adapters/claude-local', 'packages/adapters/codex-local', 'packages/adapters/openclaw',
   'server', 'cli'];
@@ -105,7 +104,7 @@ echo "  ✓ Created changeset for $(echo "$PACKAGES" | wc -l | xargs) packages"
 echo ""
 echo "==> Step 3/7: Running changeset version..."
 cd "$REPO_ROOT"
-npx changeset version
+bun x changeset version
 echo "  ✓ Versions bumped and CHANGELOGs generated"
 
 # Read the new version from the CLI package
@@ -113,9 +112,31 @@ NEW_VERSION=$(node -e "console.log(require('$CLI_DIR/package.json').version)")
 echo "  New version: $NEW_VERSION"
 
 # Update the version string in cli/src/index.ts
-CURRENT_VERSION_IN_SRC=$(sed -n 's/.*\.version("\([^"]*\)".*/\1/p' "$CLI_DIR/src/index.ts" | head -1)
+CURRENT_VERSION_IN_SRC=$(node --input-type=module - "$CLI_DIR/src/index.ts" <<'EOF'
+import fs from "node:fs";
+
+const [, , filePath] = process.argv;
+const source = fs.readFileSync(filePath, "utf8");
+const match = source.match(/\.version\("([^"]*)"\)/);
+if (match) {
+  console.log(match[1]);
+}
+EOF
+)
 if [ -n "$CURRENT_VERSION_IN_SRC" ] && [ "$CURRENT_VERSION_IN_SRC" != "$NEW_VERSION" ]; then
-  sed -i '' "s/\.version(\"$CURRENT_VERSION_IN_SRC\")/\.version(\"$NEW_VERSION\")/" "$CLI_DIR/src/index.ts"
+  node --input-type=module - "$CLI_DIR/src/index.ts" "$NEW_VERSION" <<'EOF'
+import fs from "node:fs";
+
+const [, , filePath, nextVersion] = process.argv;
+const source = fs.readFileSync(filePath, "utf8");
+const updated = source.replace(/\.version\("([^"]*)"\)/, `.version("${nextVersion}")`);
+
+if (updated === source) {
+  throw new Error(`Could not update CLI version in ${filePath}`);
+}
+
+fs.writeFileSync(filePath, updated, "utf8");
+EOF
   echo "  ✓ Updated cli/src/index.ts version to $NEW_VERSION"
 fi
 
@@ -126,16 +147,16 @@ echo "==> Step 4/7: Building all packages..."
 cd "$REPO_ROOT"
 
 # Build packages in dependency order (excluding CLI)
-pnpm --filter @paperclipai/shared build
-pnpm --filter @paperclipai/adapter-utils build
-pnpm --filter @paperclipai/db build
-pnpm --filter @paperclipai/adapter-claude-local build
-pnpm --filter @paperclipai/adapter-codex-local build
-pnpm --filter @paperclipai/adapter-openclaw build
-pnpm --filter @paperclipai/server build
+bun run --filter @paperclipai/shared build
+bun run --filter @paperclipai/adapter-utils build
+bun run --filter @paperclipai/db build
+bun run --filter @paperclipai/adapter-claude-local build
+bun run --filter @paperclipai/adapter-codex-local build
+bun run --filter @paperclipai/adapter-openclaw build
+bun run --filter @paperclipai/server build
 
 # Build UI and bundle into server package for static serving
-pnpm --filter @paperclipai/ui build
+bun run --filter @paperclipai/ui build
 rm -rf "$REPO_ROOT/server/ui-dist"
 cp -r "$REPO_ROOT/ui/dist" "$REPO_ROOT/server/ui-dist"
 
@@ -173,7 +194,7 @@ else
   echo ""
   echo "==> Step 6/7: Publishing to npm..."
   cd "$REPO_ROOT"
-  npx changeset publish
+  bun x changeset publish
   echo "  ✓ Published all packages"
 fi
 

@@ -120,8 +120,11 @@ describe("cursor execute", () => {
       );
       expect(capture.prompt).toContain("Paperclip runtime note:");
       expect(capture.prompt).toContain("PAPERCLIP_API_KEY");
+      expect(capture.prompt).toContain("Authorization: Bearer $PAPERCLIP_API_KEY");
+      expect(capture.prompt).toContain("Do not pipe the first API response through python -m json.tool");
       expect(invocationPrompt).toContain("Paperclip runtime note:");
       expect(invocationPrompt).toContain("PAPERCLIP_API_URL");
+      expect(invocationPrompt).toContain("Authorization: Bearer $PAPERCLIP_API_KEY");
     } finally {
       if (previousHome === undefined) {
         delete process.env.HOME;

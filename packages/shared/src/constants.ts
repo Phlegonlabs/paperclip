@@ -140,13 +140,14 @@ export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
 export const SECRET_PROVIDERS = [
   "local_encrypted",
+  "cloudflare_encrypted",
   "aws_secrets_manager",
   "gcp_secret_manager",
   "vault",
 ] as const;
 export type SecretProvider = (typeof SECRET_PROVIDERS)[number];
 
-export const STORAGE_PROVIDERS = ["local_disk", "s3"] as const;
+export const STORAGE_PROVIDERS = ["local_disk", "s3", "r2"] as const;
 export type StorageProvider = (typeof STORAGE_PROVIDERS)[number];
 
 export const HEARTBEAT_INVOCATION_SOURCES = [

@@ -7,7 +7,7 @@ Paperclip uses PostgreSQL via [Drizzle ORM](https://orm.drizzle.team/). There ar
 If you don't set `DATABASE_URL`, the server automatically starts an embedded PostgreSQL instance and manages a local data directory.
 
 ```sh
-pnpm dev
+bun run dev
 ```
 
 That's it. On first start the server:
@@ -49,7 +49,7 @@ DATABASE_URL=postgres://paperclip:paperclip@localhost:5432/paperclip \
 Start the server:
 
 ```sh
-pnpm dev
+bun run dev
 ```
 
 ## 3. Hosted PostgreSQL (Supabase)
@@ -150,11 +150,11 @@ PAPERCLIP_SECRETS_STRICT_MODE=true
 You can set strict mode and provider defaults via:
 
 ```sh
-pnpm paperclipai configure --section secrets
+bun run paperclipai -- configure --section secrets
 ```
 
 Inline secret migration command:
 
 ```sh
-pnpm secrets:migrate-inline-env --apply
+bun run secrets:migrate-inline-env --apply
 ```

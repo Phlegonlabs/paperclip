@@ -15,6 +15,9 @@ export function defaultSecretsConfig(): SecretsConfig {
     localEncrypted: {
       keyFilePath,
     },
+    cloudflareEncrypted: {
+      keyEnvVarName: "PAPERCLIP_SECRETS_MASTER_KEY",
+    },
   };
 }
 
@@ -28,6 +31,11 @@ export async function promptSecrets(current?: SecretsConfig): Promise<SecretsCon
         value: "local_encrypted" as const,
         label: "Local encrypted (recommended)",
         hint: "best for single-developer installs",
+      },
+      {
+        value: "cloudflare_encrypted" as const,
+        label: "Cloudflare encrypted",
+        hint: "for Worker deployments that keep the master key in env secrets",
       },
       {
         value: "aws_secrets_manager" as const,
@@ -65,6 +73,7 @@ export async function promptSecrets(current?: SecretsConfig): Promise<SecretsCon
 
   const fallbackDefault = defaultKeyFilePath();
   let keyFilePath = base.localEncrypted.keyFilePath || fallbackDefault;
+  let keyEnvVarName = base.cloudflareEncrypted.keyEnvVarName || "PAPERCLIP_SECRETS_MASTER_KEY";
   if (provider === "local_encrypted") {
     const keyPath = await p.text({
       message: "Local encrypted key file path",
@@ -82,7 +91,24 @@ export async function promptSecrets(current?: SecretsConfig): Promise<SecretsCon
     keyFilePath = keyPath.trim();
   }
 
-  if (provider !== "local_encrypted") {
+  if (provider === "cloudflare_encrypted") {
+    const envVarName = await p.text({
+      message: "Cloudflare master key env var name",
+      defaultValue: keyEnvVarName,
+      placeholder: "PAPERCLIP_SECRETS_MASTER_KEY",
+      validate: (value) => {
+        if (!value || value.trim().length === 0) return "Env var name is required";
+      },
+    });
+
+    if (p.isCancel(envVarName)) {
+      p.cancel("Setup cancelled.");
+      process.exit(0);
+    }
+    keyEnvVarName = envVarName.trim();
+  }
+
+  if (provider !== "local_encrypted" && provider !== "cloudflare_encrypted") {
     p.note(
       `${provider} is not fully wired in this build yet. Keep local_encrypted unless you are actively implementing that adapter.`,
       "Heads up",
@@ -94,6 +120,9 @@ export async function promptSecrets(current?: SecretsConfig): Promise<SecretsCon
     strictMode,
     localEncrypted: {
       keyFilePath,
+    },
+    cloudflareEncrypted: {
+      keyEnvVarName,
     },
   };
 }

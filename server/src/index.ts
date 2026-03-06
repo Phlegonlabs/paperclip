@@ -66,6 +66,9 @@ if (process.env.PAPERCLIP_SECRETS_STRICT_MODE === undefined) {
 if (process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE === undefined) {
   process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE = config.secretsMasterKeyFilePath;
 }
+if (process.env.PAPERCLIP_CLOUDFLARE_SECRETS_KEY_ENV_NAME === undefined) {
+  process.env.PAPERCLIP_CLOUDFLARE_SECRETS_KEY_ENV_NAME = config.secretsCloudflareKeyEnvVarName;
+}
 
 type MigrationSummary =
   | "skipped"
@@ -129,7 +132,7 @@ async function ensureMigrations(
     if (!apply) {
       logger.warn(
         { pendingMigrations: state.pendingMigrations },
-        `${label} has pending migrations; continuing without applying. Run pnpm db:migrate to apply before startup.`,
+        `${label} has pending migrations; continuing without applying. Run bun run db:migrate to apply before startup.`,
       );
       return "pending migrations skipped";
     }
@@ -143,7 +146,7 @@ async function ensureMigrations(
   if (!apply) {
     logger.warn(
       { pendingMigrations: state.pendingMigrations },
-      `${label} has pending migrations; continuing without applying. Run pnpm db:migrate to apply before startup.`,
+      `${label} has pending migrations; continuing without applying. Run bun run db:migrate to apply before startup.`,
     );
     return "pending migrations skipped";
   }

@@ -22,19 +22,19 @@ This key is auto-created during onboarding. The key never leaves your machine.
 Onboarding writes default secrets config:
 
 ```sh
-pnpm paperclipai onboard
+bun run paperclipai -- onboard
 ```
 
 Update secrets settings:
 
 ```sh
-pnpm paperclipai configure --section secrets
+bun run paperclipai -- configure --section secrets
 ```
 
 Validate secrets config:
 
 ```sh
-pnpm paperclipai doctor
+bun run paperclipai -- doctor
 ```
 
 ### Environment Overrides
@@ -60,8 +60,8 @@ Recommended for any deployment beyond local trusted.
 If you have existing agents with inline API keys in their config, migrate them to encrypted secret refs:
 
 ```sh
-pnpm secrets:migrate-inline-env         # dry run
-pnpm secrets:migrate-inline-env --apply # apply migration
+bun run secrets:migrate-inline-env         # dry run
+bun run secrets:migrate-inline-env --apply # apply migration
 ```
 
 ## Secret References in Agent Config

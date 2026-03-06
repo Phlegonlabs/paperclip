@@ -625,9 +625,9 @@ Required UX:
 Before handoff:
 
 ```sh
-pnpm -r typecheck
-pnpm test:run
-pnpm build
+bun run typecheck
+bun run test:run
+bun run build
 ```
 
 If any command is skipped, record exactly what was skipped and why.

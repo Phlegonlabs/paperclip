@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 import { spawn } from "node:child_process";
 
 const mode = process.argv[2] === "watch" ? "watch" : "dev";
@@ -42,11 +42,11 @@ if (tailscaleAuth) {
   console.log("[paperclip] dev mode: local_trusted (default)");
 }
 
-const pnpmBin = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+const bunBin = process.platform === "win32" ? "bun.exe" : "bun";
 const serverScript = mode === "watch" ? "dev:watch" : "dev";
 const child = spawn(
-  pnpmBin,
-  ["--filter", "@paperclipai/server", serverScript, ...forwardedArgs],
+  bunBin,
+  ["run", "--filter", "@paperclipai/server", serverScript, ...forwardedArgs],
   { stdio: "inherit", env },
 );
 

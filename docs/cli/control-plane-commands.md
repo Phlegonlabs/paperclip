@@ -9,38 +9,38 @@ Client-side commands for managing issues, agents, approvals, and more.
 
 ```sh
 # List issues
-pnpm paperclipai issue list [--status todo,in_progress] [--assignee-agent-id <id>] [--match text]
+bun run paperclipai -- issue list [--status todo,in_progress] [--assignee-agent-id <id>] [--match text]
 
 # Get issue details
-pnpm paperclipai issue get <issue-id-or-identifier>
+bun run paperclipai -- issue get <issue-id-or-identifier>
 
 # Create issue
-pnpm paperclipai issue create --title "..." [--description "..."] [--status todo] [--priority high]
+bun run paperclipai -- issue create --title "..." [--description "..."] [--status todo] [--priority high]
 
 # Update issue
-pnpm paperclipai issue update <issue-id> [--status in_progress] [--comment "..."]
+bun run paperclipai -- issue update <issue-id> [--status in_progress] [--comment "..."]
 
 # Add comment
-pnpm paperclipai issue comment <issue-id> --body "..." [--reopen]
+bun run paperclipai -- issue comment <issue-id> --body "..." [--reopen]
 
 # Checkout task
-pnpm paperclipai issue checkout <issue-id> --agent-id <agent-id>
+bun run paperclipai -- issue checkout <issue-id> --agent-id <agent-id>
 
 # Release task
-pnpm paperclipai issue release <issue-id>
+bun run paperclipai -- issue release <issue-id>
 ```
 
 ## Company Commands
 
 ```sh
-pnpm paperclipai company list
-pnpm paperclipai company get <company-id>
+bun run paperclipai -- company list
+bun run paperclipai -- company get <company-id>
 
 # Export to portable folder package (writes manifest + markdown files)
-pnpm paperclipai company export <company-id> --out ./exports/acme --include company,agents
+bun run paperclipai -- company export <company-id> --out ./exports/acme --include company,agents
 
 # Preview import (no writes)
-pnpm paperclipai company import \
+bun run paperclipai -- company import \
   --from https://github.com/<owner>/<repo>/tree/main/<path> \
   --target existing \
   --company-id <company-id> \
@@ -48,7 +48,7 @@ pnpm paperclipai company import \
   --dry-run
 
 # Apply import
-pnpm paperclipai company import \
+bun run paperclipai -- company import \
   --from ./exports/acme \
   --target new \
   --new-company-name "Acme Imported" \
@@ -58,52 +58,52 @@ pnpm paperclipai company import \
 ## Agent Commands
 
 ```sh
-pnpm paperclipai agent list
-pnpm paperclipai agent get <agent-id>
+bun run paperclipai -- agent list
+bun run paperclipai -- agent get <agent-id>
 ```
 
 ## Approval Commands
 
 ```sh
 # List approvals
-pnpm paperclipai approval list [--status pending]
+bun run paperclipai -- approval list [--status pending]
 
 # Get approval
-pnpm paperclipai approval get <approval-id>
+bun run paperclipai -- approval get <approval-id>
 
 # Create approval
-pnpm paperclipai approval create --type hire_agent --payload '{"name":"..."}' [--issue-ids <id1,id2>]
+bun run paperclipai -- approval create --type hire_agent --payload '{"name":"..."}' [--issue-ids <id1,id2>]
 
 # Approve
-pnpm paperclipai approval approve <approval-id> [--decision-note "..."]
+bun run paperclipai -- approval approve <approval-id> [--decision-note "..."]
 
 # Reject
-pnpm paperclipai approval reject <approval-id> [--decision-note "..."]
+bun run paperclipai -- approval reject <approval-id> [--decision-note "..."]
 
 # Request revision
-pnpm paperclipai approval request-revision <approval-id> [--decision-note "..."]
+bun run paperclipai -- approval request-revision <approval-id> [--decision-note "..."]
 
 # Resubmit
-pnpm paperclipai approval resubmit <approval-id> [--payload '{"..."}']
+bun run paperclipai -- approval resubmit <approval-id> [--payload '{"..."}']
 
 # Comment
-pnpm paperclipai approval comment <approval-id> --body "..."
+bun run paperclipai -- approval comment <approval-id> --body "..."
 ```
 
 ## Activity Commands
 
 ```sh
-pnpm paperclipai activity list [--agent-id <id>] [--entity-type issue] [--entity-id <id>]
+bun run paperclipai -- activity list [--agent-id <id>] [--entity-type issue] [--entity-id <id>]
 ```
 
 ## Dashboard
 
 ```sh
-pnpm paperclipai dashboard get
+bun run paperclipai -- dashboard get
 ```
 
 ## Heartbeat
 
 ```sh
-pnpm paperclipai heartbeat run --agent-id <agent-id> [--api-base http://localhost:3100]
+bun run paperclipai -- heartbeat run --agent-id <agent-id> [--api-base http://localhost:3100]
 ```

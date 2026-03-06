@@ -52,11 +52,18 @@ function writeBaseConfig(configPath: string) {
         prefix: "",
         forcePathStyle: false,
       },
+      r2: {
+        bucket: "paperclip",
+        prefix: "",
+      },
     },
     secrets: {
       provider: "local_encrypted",
       strictMode: false,
       localEncrypted: { keyFilePath: "/tmp/paperclip-secrets/master.key" },
+      cloudflareEncrypted: {
+        keyEnvVarName: "PAPERCLIP_SECRETS_MASTER_KEY",
+      },
     },
   };
   fs.writeFileSync(configPath, JSON.stringify(base, null, 2));

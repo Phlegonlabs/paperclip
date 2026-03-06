@@ -28,6 +28,41 @@ export function storageCheck(config: PaperclipConfig, configPath?: string): Chec
     }
   }
 
+  if (config.storage.provider === "r2") {
+    const bucket = config.storage.r2.bucket.trim();
+    const accountId = config.storage.r2.accountId?.trim() ?? "";
+    const endpoint = config.storage.r2.endpoint?.trim() ?? "";
+    if (!bucket) {
+      return {
+        name: "Storage",
+        status: "fail",
+        message: "R2 storage requires a non-empty bucket",
+        canRepair: false,
+        repairHint: "Run `paperclipai configure --section storage` and set storage.r2.bucket",
+      };
+    }
+
+    if (!endpoint && !accountId) {
+      return {
+        name: "Storage",
+        status: "fail",
+        message: "R2 storage requires either an endpoint or an accountId",
+        canRepair: false,
+        repairHint:
+          "Set storage.r2.endpoint directly or set storage.r2.accountId so the runtime can derive the endpoint",
+      };
+    }
+
+    const resolvedEndpoint = endpoint || `https://${accountId}.r2.cloudflarestorage.com`;
+    return {
+      name: "Storage",
+      status: "warn",
+      message: `R2 storage configured (bucket=${bucket}, endpoint=${resolvedEndpoint}). Reachability check is skipped in doctor.`,
+      canRepair: false,
+      repairHint: "Verify R2 credentials and bucket permissions in the deployment environment",
+    };
+  }
+
   const bucket = config.storage.s3.bucket.trim();
   const region = config.storage.s3.region.trim();
   if (!bucket || !region) {

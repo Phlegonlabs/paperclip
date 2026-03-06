@@ -6,6 +6,8 @@ import {
   principalPermissionGrants,
 } from "@paperclipai/db";
 import type { PermissionKey, PrincipalType } from "@paperclipai/shared";
+import { syncUserAccessSnapshot } from "../control-plane-client.js";
+import { logger } from "../middleware/logger.js";
 
 type MembershipRow = typeof companyMemberships.$inferSelect;
 type GrantInput = {
@@ -132,7 +134,7 @@ export function accessService(db: Db) {
       .where(and(eq(instanceUserRoles.userId, userId), eq(instanceUserRoles.role, "instance_admin")))
       .then((rows) => rows[0] ?? null);
     if (existing) return existing;
-    return db
+    const created = await db
       .insert(instanceUserRoles)
       .values({
         userId,
@@ -140,14 +142,22 @@ export function accessService(db: Db) {
       })
       .returning()
       .then((rows) => rows[0]);
+    void syncUserAccessSnapshot(db, userId).catch((err) => {
+      logger.warn({ err, userId }, "failed to sync promoted instance admin access to control plane");
+    });
+    return created;
   }
 
   async function demoteInstanceAdmin(userId: string) {
-    return db
+    const deleted = await db
       .delete(instanceUserRoles)
       .where(and(eq(instanceUserRoles.userId, userId), eq(instanceUserRoles.role, "instance_admin")))
       .returning()
       .then((rows) => rows[0] ?? null);
+    void syncUserAccessSnapshot(db, userId).catch((err) => {
+      logger.warn({ err, userId }, "failed to sync demoted instance admin access to control plane");
+    });
+    return deleted;
   }
 
   async function listUserCompanyAccess(userId: string) {
@@ -181,6 +191,9 @@ export function accessService(db: Db) {
       }
     });
 
+    void syncUserAccessSnapshot(db, userId).catch((err) => {
+      logger.warn({ err, userId }, "failed to sync user company access to control plane");
+    });
     return listUserCompanyAccess(userId);
   }
 
@@ -200,12 +213,17 @@ export function accessService(db: Db) {
           .where(eq(companyMemberships.id, existing.id))
           .returning()
           .then((rows) => rows[0] ?? null);
+        if (principalType === "user") {
+          void syncUserAccessSnapshot(db, principalId).catch((err) => {
+            logger.warn({ err, userId: principalId }, "failed to sync updated user membership to control plane");
+          });
+        }
         return updated ?? existing;
       }
       return existing;
     }
 
-    return db
+    const created = await db
       .insert(companyMemberships)
       .values({
         companyId,
@@ -216,6 +234,12 @@ export function accessService(db: Db) {
       })
       .returning()
       .then((rows) => rows[0]);
+    if (principalType === "user") {
+      void syncUserAccessSnapshot(db, principalId).catch((err) => {
+        logger.warn({ err, userId: principalId }, "failed to sync created user membership to control plane");
+      });
+    }
+    return created;
   }
 
   async function setPrincipalGrants(

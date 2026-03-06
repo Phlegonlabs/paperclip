@@ -8,13 +8,13 @@ Run Paperclip locally with zero external dependencies.
 ## Prerequisites
 
 - Node.js 20+
-- pnpm 9+
+- Bun 1.3+
 
 ## Start Dev Server
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 This starts:
@@ -29,7 +29,7 @@ No Docker or external database required. Paperclip uses embedded PostgreSQL auto
 For a first-time install:
 
 ```sh
-pnpm paperclipai run
+bun run paperclipai -- run
 ```
 
 This does:
@@ -43,7 +43,7 @@ This does:
 To run in `authenticated/private` mode for network access:
 
 ```sh
-pnpm dev --tailscale-auth
+bun run dev --tailscale-auth
 ```
 
 This binds the server to `0.0.0.0` for private-network access.
@@ -51,7 +51,7 @@ This binds the server to `0.0.0.0` for private-network access.
 Allow additional private hostnames:
 
 ```sh
-pnpm paperclipai allowed-hostname dotta-macbook-pro
+bun run paperclipai -- allowed-hostname dotta-macbook-pro
 ```
 
 ## Health Checks
@@ -70,7 +70,7 @@ To wipe local data and start fresh:
 
 ```sh
 rm -rf ~/.paperclip/instances/default/db
-pnpm dev
+bun run dev
 ```
 
 ## Data Locations
@@ -86,5 +86,5 @@ pnpm dev
 Override with environment variables:
 
 ```sh
-PAPERCLIP_HOME=/custom/path PAPERCLIP_INSTANCE_ID=dev pnpm paperclipai run
+PAPERCLIP_HOME=/custom/path PAPERCLIP_INSTANCE_ID=dev bun run paperclipai -- run
 ```

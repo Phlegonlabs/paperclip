@@ -47,13 +47,57 @@ function withStrictModeNote(
 
 export function secretsCheck(config: PaperclipConfig, configPath?: string): CheckResult {
   const provider = config.secrets.provider;
+  if (provider === "cloudflare_encrypted") {
+    const keyEnvVarName = config.secrets.cloudflareEncrypted.keyEnvVarName.trim();
+    if (!keyEnvVarName) {
+      return {
+        name: "Secrets adapter",
+        status: "fail",
+        message: "cloudflare_encrypted requires a non-empty keyEnvVarName",
+        canRepair: false,
+        repairHint: "Run `paperclipai configure --section secrets` and set cloudflareEncrypted.keyEnvVarName",
+      };
+    }
+
+    const envMasterKey = process.env[keyEnvVarName];
+    if (!envMasterKey || envMasterKey.trim().length === 0) {
+      return {
+        name: "Secrets adapter",
+        status: "fail",
+        message: `Missing ${keyEnvVarName}; cloudflare_encrypted requires a 32-byte master key in env`,
+        canRepair: false,
+        repairHint: `Set ${keyEnvVarName} to a valid key before running paperclipai`,
+      };
+    }
+
+    if (!decodeMasterKey(envMasterKey)) {
+      return {
+        name: "Secrets adapter",
+        status: "fail",
+        message: `Invalid ${keyEnvVarName} (expected 32-byte base64, 64-char hex, or raw 32-char string)`,
+        canRepair: false,
+        repairHint: `Set ${keyEnvVarName} to a valid key or choose local_encrypted`,
+      };
+    }
+
+    return withStrictModeNote(
+      {
+        name: "Secrets adapter",
+        status: "pass",
+        message: `Cloudflare encrypted provider configured via ${keyEnvVarName}`,
+      },
+      config,
+    );
+  }
+
   if (provider !== "local_encrypted") {
     return {
       name: "Secrets adapter",
       status: "fail",
       message: `${provider} is configured, but this build only supports local_encrypted`,
       canRepair: false,
-      repairHint: "Run `paperclipai configure --section secrets` and set provider to local_encrypted",
+      repairHint:
+        "Run `paperclipai configure --section secrets` and set provider to local_encrypted or cloudflare_encrypted",
     };
   }
 

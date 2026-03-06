@@ -714,5 +714,5 @@ Create tests in `server/src/__tests__/<adapter-name>-adapter.test.ts`. Test:
 - [ ] Registered in `server/src/adapters/registry.ts`
 - [ ] Registered in `ui/src/adapters/registry.ts`
 - [ ] Registered in `cli/src/adapters/registry.ts`
-- [ ] Added to workspace in root `pnpm-workspace.yaml` (if not already covered by glob)
+- [ ] Added to workspace in the root `package.json` `workspaces` field (if not already covered by glob)
 - [ ] Tests for parsing, session codec, and config building

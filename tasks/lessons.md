@@ -18,8 +18,8 @@ Record durable lessons here when they should survive beyond chat history.
 
 - Date: 2026-03-05
 - Topic: Package manager execution
-- Lesson: Repo docs should stay canonical on `pnpm`, but some local environments only expose it through Corepack.
-- Action: Document `corepack pnpm` as a fallback without rewriting the repo contract around the fallback.
+- Lesson: Once the repo contract moves to Bun, command examples and workflow docs must stop treating old package-manager fallbacks as canonical.
+- Action: Keep Bun as the only documented contract and regenerate lockfiles, hooks, and Docker steps together.
 
 - Date: 2026-03-05
 - Topic: Verification assumptions
@@ -35,3 +35,28 @@ Record durable lessons here when they should survive beyond chat history.
 - Topic: Build script portability
 - Lesson: Repo build steps that rely on Unix utilities such as `cp` or `chmod` fail immediately on Windows even when the TypeScript build itself is healthy.
 - Action: Prefer Node-based file operations in package scripts that must run cross-platform.
+
+- Date: 2026-03-05
+- Topic: Package-manager migration
+- Lesson: Switching the repo contract from an old workspace manager to Bun is not just a lockfile change; Docker, hook defaults, CLI examples, and workflow docs drift immediately if they are not updated in the same task.
+- Action: Treat package-manager changes as a cross-repo contract update and verify every canonical command surface together.
+
+- Date: 2026-03-05
+- Topic: Cloudflare migration
+- Lesson: A same-origin Cloudflare cutover can start safely as a parallel workspace, but architecture docs must say explicitly that the Worker is a migration target until auth, persistence, and realtime behavior truly move over.
+- Action: Keep `docs/architecture.md`, `docs/plans.md`, and `tasks/todo.md` explicit about skeleton-vs-cutover status.
+
+- Date: 2026-03-06
+- Topic: Durable Object realtime security
+- Lesson: A same-origin Worker realtime skeleton is not safe by default; websocket auth must happen before the Durable Object handoff, and the Durable Object itself still needs signed internal request validation so direct bypass traffic cannot subscribe or broadcast.
+- Action: Keep realtime auth tests covering unauthenticated upgrade rejection, signed internal publish, and canonical `LiveEvent` payload delivery.
+
+- Date: 2026-03-06
+- Topic: Windows file URLs
+- Lesson: `new URL(..., import.meta.url).pathname` is not a safe filesystem path on Windows for migration folders or other `fs`/Drizzle callers; it can turn into `C:\\C:\\...` once normalized downstream.
+- Action: Resolve module-relative filesystem paths through `fileURLToPath(...)` and reuse the same helper across every migration entrypoint.
+
+- Date: 2026-03-06
+- Topic: Default agent templates
+- Lesson: The product docs talked about default agents long before the repo had real shipped template files; leaving personas as external links created immediate drift and made onboarding dependent on an old upstream GitHub repo.
+- Action: Keep repo-tracked templates under `agents/<role>/` and materialize editable per-agent copies at create time for local adapters.

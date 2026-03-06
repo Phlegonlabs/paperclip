@@ -1,5 +1,6 @@
 export type SecretProvider =
   | "local_encrypted"
+  | "cloudflare_encrypted"
   | "aws_secrets_manager"
   | "gcp_secret_manager"
   | "vault";

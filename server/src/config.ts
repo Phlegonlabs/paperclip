@@ -50,6 +50,7 @@ export interface Config {
   secretsProvider: SecretProvider;
   secretsStrictMode: boolean;
   secretsMasterKeyFilePath: string;
+  secretsCloudflareKeyEnvVarName: string;
   storageProvider: StorageProvider;
   storageLocalDiskBaseDir: string;
   storageS3Bucket: string;
@@ -57,6 +58,12 @@ export interface Config {
   storageS3Endpoint: string | undefined;
   storageS3Prefix: string;
   storageS3ForcePathStyle: boolean;
+  storageR2Bucket: string;
+  storageR2AccountId: string;
+  storageR2Endpoint: string | undefined;
+  storageR2AccessKeyId: string | undefined;
+  storageR2SecretAccessKey: string | undefined;
+  storageR2Prefix: string;
   heartbeatSchedulerEnabled: boolean;
   heartbeatSchedulerIntervalMs: number;
   companyDeletionEnabled: boolean;
@@ -107,6 +114,24 @@ export function loadConfig(): Config {
     process.env.PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE !== undefined
       ? process.env.PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE === "true"
       : (fileStorage?.s3?.forcePathStyle ?? false);
+  const storageR2Bucket = process.env.PAPERCLIP_STORAGE_R2_BUCKET ?? fileStorage?.r2?.bucket ?? "paperclip";
+  const storageR2AccountId = process.env.PAPERCLIP_STORAGE_R2_ACCOUNT_ID ?? fileStorage?.r2?.accountId ?? "";
+  const storageR2Endpoint = process.env.PAPERCLIP_STORAGE_R2_ENDPOINT ?? fileStorage?.r2?.endpoint ?? undefined;
+  const storageR2AccessKeyId =
+    process.env.PAPERCLIP_STORAGE_R2_ACCESS_KEY_ID ??
+    fileStorage?.r2?.accessKeyId ??
+    process.env.R2_ACCESS_KEY_ID ??
+    undefined;
+  const storageR2SecretAccessKey =
+    process.env.PAPERCLIP_STORAGE_R2_SECRET_ACCESS_KEY ??
+    fileStorage?.r2?.secretAccessKey ??
+    process.env.R2_SECRET_ACCESS_KEY ??
+    undefined;
+  const storageR2Prefix = process.env.PAPERCLIP_STORAGE_R2_PREFIX ?? fileStorage?.r2?.prefix ?? "";
+  const secretsCloudflareKeyEnvVarName =
+    process.env.PAPERCLIP_CLOUDFLARE_SECRETS_KEY_ENV_NAME ??
+    fileSecrets?.cloudflareEncrypted?.keyEnvVarName ??
+    "PAPERCLIP_SECRETS_MASTER_KEY";
 
   const deploymentModeFromEnvRaw = process.env.PAPERCLIP_DEPLOYMENT_MODE;
   const deploymentModeFromEnv =
@@ -207,6 +232,7 @@ export function loadConfig(): Config {
           fileSecrets?.localEncrypted.keyFilePath ??
           resolveDefaultSecretsKeyFilePath(),
       ),
+    secretsCloudflareKeyEnvVarName,
     storageProvider,
     storageLocalDiskBaseDir,
     storageS3Bucket,
@@ -214,6 +240,12 @@ export function loadConfig(): Config {
     storageS3Endpoint,
     storageS3Prefix,
     storageS3ForcePathStyle,
+    storageR2Bucket,
+    storageR2AccountId,
+    storageR2Endpoint,
+    storageR2AccessKeyId,
+    storageR2SecretAccessKey,
+    storageR2Prefix,
     heartbeatSchedulerEnabled: process.env.HEARTBEAT_SCHEDULER_ENABLED !== "false",
     heartbeatSchedulerIntervalMs: Math.max(10000, Number(process.env.HEARTBEAT_SCHEDULER_INTERVAL_MS) || 30000),
     companyDeletionEnabled,

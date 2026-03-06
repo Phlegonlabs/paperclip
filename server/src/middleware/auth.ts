@@ -6,6 +6,7 @@ import { agentApiKeys, agents, companyMemberships, instanceUserRoles } from "@pa
 import { verifyLocalAgentJwt } from "../agent-auth-jwt.js";
 import type { DeploymentMode } from "@paperclipai/shared";
 import type { BetterAuthSessionResult } from "../auth/better-auth.js";
+import { syncAgentApiKeySnapshot, syncBoardAccessSnapshot } from "../control-plane-client.js";
 import { logger } from "./logger.js";
 
 function hashToken(token: string) {
@@ -19,12 +20,16 @@ interface ActorMiddlewareOptions {
 
 export function actorMiddleware(db: Db, opts: ActorMiddlewareOptions): RequestHandler {
   return async (req, _res, next) => {
-    req.actor =
-      opts.deploymentMode === "local_trusted"
-        ? { type: "board", userId: "local-board", isInstanceAdmin: true, source: "local_implicit" }
-        : { type: "none", source: "none" };
+    const rawRunIdHeader = req.header("x-paperclip-run-id");
+    const runIdHeader = typeof rawRunIdHeader === "string" && rawRunIdHeader.trim().length > 0
+      ? rawRunIdHeader.trim()
+      : undefined;
 
-    const runIdHeader = req.header("x-paperclip-run-id");
+    req.actor = {
+      type: "none",
+      source: "none",
+      ...(runIdHeader ? { runId: runIdHeader } : {}),
+    };
 
     const authHeader = req.header("authorization");
     if (!authHeader?.toLowerCase().startsWith("bearer ")) {
@@ -65,11 +70,24 @@ export function actorMiddleware(db: Db, opts: ActorMiddlewareOptions): RequestHa
             runId: runIdHeader ?? undefined,
             source: "session",
           };
+          void syncBoardAccessSnapshot(db, {
+            userId,
+            sessionId: session.session?.id ?? null,
+          }).catch((err) => {
+            logger.warn({ err, userId }, "failed to sync board access snapshot to control plane");
+          });
           next();
           return;
         }
       }
-      if (runIdHeader) req.actor.runId = runIdHeader;
+      if (opts.deploymentMode === "local_trusted" && !authHeader && !runIdHeader) {
+        req.actor = {
+          type: "board",
+          userId: "local-board",
+          isInstanceAdmin: true,
+          source: "local_implicit",
+        };
+      }
       next();
       return;
     }
@@ -122,10 +140,17 @@ export function actorMiddleware(db: Db, opts: ActorMiddlewareOptions): RequestHa
       return;
     }
 
+    const lastUsedAt = new Date();
     await db
       .update(agentApiKeys)
-      .set({ lastUsedAt: new Date() })
+      .set({ lastUsedAt })
       .where(eq(agentApiKeys.id, key.id));
+    void syncAgentApiKeySnapshot({
+      ...key,
+      lastUsedAt,
+    }).catch((err) => {
+      logger.warn({ err, keyId: key.id }, "failed to sync agent API key usage to control plane");
+    });
 
     const agentRecord = await db
       .select()

@@ -3,11 +3,14 @@ import { drizzle as drizzlePg } from "drizzle-orm/postgres-js";
 import { migrate as migratePg } from "drizzle-orm/postgres-js/migrator";
 import { readFile, readdir } from "node:fs/promises";
 import postgres from "postgres";
+import {
+  getMigrationFilePath,
+  getMigrationJournalPath,
+  getMigrationsFolderPath,
+} from "./migration-paths.js";
 import * as schema from "./schema/index.js";
 
-const MIGRATIONS_FOLDER = new URL("./migrations", import.meta.url).pathname;
 const DRIZZLE_MIGRATIONS_TABLE = "__drizzle_migrations";
-const MIGRATIONS_JOURNAL_JSON = new URL("./migrations/meta/_journal.json", import.meta.url).pathname;
 
 function isSafeIdentifier(value: string): boolean {
   return /^[A-Za-z_][A-Za-z0-9_]*$/.test(value);
@@ -46,7 +49,7 @@ export function createDb(url: string) {
 }
 
 async function listMigrationFiles(): Promise<string[]> {
-  const entries = await readdir(MIGRATIONS_FOLDER, { withFileTypes: true });
+  const entries = await readdir(getMigrationsFolderPath(), { withFileTypes: true });
   return entries
     .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
     .map((entry) => entry.name)
@@ -65,7 +68,7 @@ type JournalMigrationEntry = {
 
 async function listJournalMigrationEntries(): Promise<JournalMigrationEntry[]> {
   try {
-    const raw = await readFile(MIGRATIONS_JOURNAL_JSON, "utf8");
+    const raw = await readFile(getMigrationJournalPath(), "utf8");
     const parsed = JSON.parse(raw) as MigrationJournalFile;
     if (!Array.isArray(parsed.entries)) return [];
     return parsed.entries
@@ -87,7 +90,7 @@ async function listJournalMigrationFiles(): Promise<string[]> {
 }
 
 async function readMigrationFileContent(migrationFile: string): Promise<string> {
-  return readFile(new URL(`./migrations/${migrationFile}`, import.meta.url), "utf8");
+  return readFile(getMigrationFilePath(migrationFile), "utf8");
 }
 
 async function orderMigrationsByJournal(migrationFiles: string[]): Promise<string[]> {
@@ -645,7 +648,7 @@ export async function applyPendingMigrations(url: string): Promise<void> {
 
   try {
     const db = drizzlePg(sql);
-    await migratePg(db, { migrationsFolder: MIGRATIONS_FOLDER });
+    await migratePg(db, { migrationsFolder: getMigrationsFolderPath() });
   } finally {
     await sql.end();
   }
@@ -702,8 +705,7 @@ export async function migratePostgresIfEmpty(url: string): Promise<MigrationBoot
     }
 
     const db = drizzlePg(sql);
-    const migrationsFolder = new URL("./migrations", import.meta.url).pathname;
-    await migratePg(db, { migrationsFolder });
+    await migratePg(db, { migrationsFolder: getMigrationsFolderPath() });
 
     return { migrated: true, reason: "migrated-empty-db", tableCount: 0 };
   } finally {

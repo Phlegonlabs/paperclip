@@ -25,19 +25,19 @@ echo "==> Building paperclipai for npm"
 
 # ── Step 1: Forbidden token check ──────────────────────────────────────────────
 if [ "$skip_checks" = false ]; then
-  echo "  [1/5] Running forbidden token check..."
+  echo "  [1/6] Running forbidden token check..."
   node "$REPO_ROOT/scripts/check-forbidden-tokens.mjs"
 else
-  echo "  [1/5] Skipping forbidden token check (--skip-checks)"
+  echo "  [1/6] Skipping forbidden token check (--skip-checks)"
 fi
 
 # ── Step 2: TypeScript type-check ──────────────────────────────────────────────
-echo "  [2/5] Type-checking..."
+echo "  [2/6] Type-checking..."
 cd "$REPO_ROOT"
-pnpm -r typecheck
+bun run typecheck
 
 # ── Step 3: Bundle CLI with esbuild ────────────────────────────────────────────
-echo "  [3/5] Bundling CLI with esbuild..."
+echo "  [3/6] Bundling CLI with esbuild..."
 cd "$CLI_DIR"
 rm -rf dist
 

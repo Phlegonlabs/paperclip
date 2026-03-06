@@ -62,6 +62,15 @@ export {
   type PermissionKey,
 } from "./constants.js";
 
+export {
+  PAPERCLIP_GITHUB_OWNER,
+  PAPERCLIP_GITHUB_REPO,
+  PAPERCLIP_GITHUB_DEFAULT_REF,
+  PAPERCLIP_GITHUB_REPO_URL,
+  paperclipGitHubBlobUrl,
+  paperclipGitHubTreeUrl,
+} from "./project-links.js";
+
 export type {
   Company,
   Agent,
@@ -252,7 +261,9 @@ export {
   storageConfigSchema,
   storageLocalDiskConfigSchema,
   storageS3ConfigSchema,
+  storageR2ConfigSchema,
   secretsLocalEncryptedConfigSchema,
+  secretsCloudflareEncryptedConfigSchema,
   type PaperclipConfig,
   type LlmConfig,
   type DatabaseBackupConfig,
@@ -263,7 +274,9 @@ export {
   type StorageConfig,
   type StorageLocalDiskConfig,
   type StorageS3Config,
+  type StorageR2Config,
   type SecretsConfig,
   type SecretsLocalEncryptedConfig,
+  type SecretsCloudflareEncryptedConfig,
   type ConfigMeta,
 } from "./config-schema.js";

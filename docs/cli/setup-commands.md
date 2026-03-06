@@ -10,7 +10,7 @@ Instance setup and diagnostics commands.
 One-command bootstrap and start:
 
 ```sh
-pnpm paperclipai run
+bun run paperclipai -- run
 ```
 
 Does:
@@ -22,7 +22,7 @@ Does:
 Choose a specific instance:
 
 ```sh
-pnpm paperclipai run --instance dev
+bun run paperclipai -- run --instance dev
 ```
 
 ## `paperclipai onboard`
@@ -30,7 +30,7 @@ pnpm paperclipai run --instance dev
 Interactive first-time setup:
 
 ```sh
-pnpm paperclipai onboard
+bun run paperclipai -- onboard
 ```
 
 First prompt:
@@ -41,13 +41,13 @@ First prompt:
 Start immediately after onboarding:
 
 ```sh
-pnpm paperclipai onboard --run
+bun run paperclipai -- onboard --run
 ```
 
 Non-interactive defaults + immediate start (opens browser on server listen):
 
 ```sh
-pnpm paperclipai onboard --yes
+bun run paperclipai -- onboard --yes
 ```
 
 ## `paperclipai doctor`
@@ -55,8 +55,8 @@ pnpm paperclipai onboard --yes
 Health checks with optional auto-repair:
 
 ```sh
-pnpm paperclipai doctor
-pnpm paperclipai doctor --repair
+bun run paperclipai -- doctor
+bun run paperclipai -- doctor --repair
 ```
 
 Validates:
@@ -72,9 +72,9 @@ Validates:
 Update configuration sections:
 
 ```sh
-pnpm paperclipai configure --section server
-pnpm paperclipai configure --section secrets
-pnpm paperclipai configure --section storage
+bun run paperclipai -- configure --section server
+bun run paperclipai -- configure --section secrets
+bun run paperclipai -- configure --section storage
 ```
 
 ## `paperclipai env`
@@ -82,7 +82,7 @@ pnpm paperclipai configure --section storage
 Show resolved environment configuration:
 
 ```sh
-pnpm paperclipai env
+bun run paperclipai -- env
 ```
 
 ## `paperclipai allowed-hostname`
@@ -90,7 +90,7 @@ pnpm paperclipai env
 Allow a private hostname for authenticated/private mode:
 
 ```sh
-pnpm paperclipai allowed-hostname my-tailscale-host
+bun run paperclipai -- allowed-hostname my-tailscale-host
 ```
 
 ## Local Storage Paths
@@ -106,12 +106,12 @@ pnpm paperclipai allowed-hostname my-tailscale-host
 Override with:
 
 ```sh
-PAPERCLIP_HOME=/custom/home PAPERCLIP_INSTANCE_ID=dev pnpm paperclipai run
+PAPERCLIP_HOME=/custom/home PAPERCLIP_INSTANCE_ID=dev bun run paperclipai -- run
 ```
 
 Or pass `--data-dir` directly on any command:
 
 ```sh
-pnpm paperclipai run --data-dir ./tmp/paperclip-dev
-pnpm paperclipai doctor --data-dir ./tmp/paperclip-dev
+bun run paperclipai -- run --data-dir ./tmp/paperclip-dev
+bun run paperclipai -- doctor --data-dir ./tmp/paperclip-dev
 ```

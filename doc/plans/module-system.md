@@ -41,7 +41,7 @@ modules/
         TokenDashboard.tsx
 ```
 
-Modules live in a top-level `modules/` directory. Each module is a pnpm workspace package.
+Modules live in a top-level `modules/` directory. Each module is a Bun workspace package.
 
 ### Manifest (`paperclip.module.json`)
 
@@ -300,7 +300,7 @@ Each module manages its own migrations in `src/migrations/`. The core migration 
 1. Core migrations run first (always)
 2. Module migrations run in dependency order
 3. Each module's migrations are tracked in a `mod_migrations` table with the module ID
-4. `pnpm db:migrate` runs everything. `pnpm db:migrate --module observability` runs one.
+4. `bun run db:migrate` runs everything. `bun run db:migrate --module observability` runs one.
 
 Modules can reference core tables via foreign keys (e.g., `agent_id → agents.id`) but core tables never reference module tables. This is a strict one-way dependency.
 
@@ -587,10 +587,10 @@ The Company Store is a registry for discovering and installing modules and templ
 ### CLI Commands
 
 ```bash
-pnpm paperclipai store list                    # browse available modules and templates
-pnpm paperclipai store install <module-id>     # install a module
-pnpm paperclipai store import <template-id>    # import a company template
-pnpm paperclipai store export                  # export current company as template
+bun run paperclipai -- store list                    # browse available modules and templates
+bun run paperclipai -- store install <module-id>     # install a module
+bun run paperclipai -- store import <template-id>    # import a company template
+bun run paperclipai -- store export                  # export current company as template
 ```
 
 ---

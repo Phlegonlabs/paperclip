@@ -14,6 +14,7 @@ import {
   ensureAbsoluteDirectory,
   ensureCommandResolvable,
   ensurePathInEnv,
+  renderPaperclipRuntimeNote,
   renderTemplate,
   runChildProcess,
 } from "@paperclipai/adapter-utils/server-utils";
@@ -62,20 +63,6 @@ function normalizeMode(rawMode: string): "plan" | "ask" | null {
   const mode = rawMode.trim().toLowerCase();
   if (mode === "plan" || mode === "ask") return mode;
   return null;
-}
-
-function renderPaperclipEnvNote(env: Record<string, string>): string {
-  const paperclipKeys = Object.keys(env)
-    .filter((key) => key.startsWith("PAPERCLIP_"))
-    .sort();
-  if (paperclipKeys.length === 0) return "";
-  return [
-    "Paperclip runtime note:",
-    `The following PAPERCLIP_* environment variables are available in this run: ${paperclipKeys.join(", ")}`,
-    "Do not assume these variables are missing without checking your shell environment.",
-    "",
-    "",
-  ].join("\n");
 }
 
 function cursorSkillsHome(): string {
@@ -328,7 +315,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     run: { id: runId, source: "on_demand" },
     context,
   });
-  const paperclipEnvNote = renderPaperclipEnvNote(env);
+  const paperclipEnvNote = renderPaperclipRuntimeNote(env);
   const prompt = `${instructionsPrefix}${paperclipEnvNote}${renderedPrompt}`;
 
   const buildArgs = (resumeSessionId: string | null) => {

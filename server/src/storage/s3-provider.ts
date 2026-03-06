@@ -10,11 +10,14 @@ import type { StorageProvider, GetObjectResult, HeadObjectResult } from "./types
 import { notFound, unprocessable } from "../errors.js";
 
 interface S3ProviderConfig {
+  providerId?: StorageProvider["id"];
   bucket: string;
   region: string;
   endpoint?: string;
   prefix?: string;
   forcePathStyle?: boolean;
+  accessKeyId?: string;
+  secretAccessKey?: string;
 }
 
 function normalizePrefix(prefix: string | undefined): string {
@@ -74,10 +77,17 @@ export function createS3StorageProvider(config: S3ProviderConfig): StorageProvid
     region,
     endpoint: config.endpoint,
     forcePathStyle: Boolean(config.forcePathStyle),
+    credentials:
+      config.accessKeyId && config.secretAccessKey
+        ? {
+            accessKeyId: config.accessKeyId,
+            secretAccessKey: config.secretAccessKey,
+          }
+        : undefined,
   });
 
   return {
-    id: "s3",
+    id: config.providerId ?? "s3",
 
     async putObject(input) {
       const key = buildKey(prefix, input.objectKey);

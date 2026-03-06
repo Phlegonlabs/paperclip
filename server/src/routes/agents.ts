@@ -38,6 +38,7 @@ import {
 } from "@paperclipai/adapter-codex-local";
 import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
 import { DEFAULT_OPENCODE_LOCAL_MODEL } from "@paperclipai/adapter-opencode-local";
+import { materializeRepoTrackedAgentTemplate } from "../agent-templates.js";
 
 export function agentRoutes(db: Db) {
   const DEFAULT_INSTRUCTIONS_PATH_KEYS: Record<string, string> = {
@@ -580,6 +581,7 @@ export function agentRoutes(db: Db) {
     await assertCanCreateAgentsForCompany(req, companyId);
     const sourceIssueIds = parseSourceIssueIds(req.body);
     const { sourceIssueId: _sourceIssueId, sourceIssueIds: _sourceIssueIds, ...hireInput } = req.body;
+    const agentId = randomUUID();
     const requestedAdapterConfig = applyCreateDefaultsByAdapterType(
       hireInput.adapterType,
       ((hireInput.adapterConfig ?? {}) as Record<string, unknown>),
@@ -589,9 +591,15 @@ export function agentRoutes(db: Db) {
       requestedAdapterConfig,
       { strictMode: strictSecretsMode },
     );
+    const materializedAdapterConfig = await materializeRepoTrackedAgentTemplate({
+      agentId,
+      role: hireInput.role ?? "general",
+      adapterType: hireInput.adapterType ?? "process",
+      adapterConfig: normalizedAdapterConfig,
+    });
     const normalizedHireInput = {
       ...hireInput,
-      adapterConfig: normalizedAdapterConfig,
+      adapterConfig: materializedAdapterConfig,
     };
 
     const company = await db
@@ -607,6 +615,7 @@ export function agentRoutes(db: Db) {
     const requiresApproval = company.requireBoardApprovalForNewAgents;
     const status = requiresApproval ? "pending_approval" : "idle";
     const agent = await svc.create(companyId, {
+      id: agentId,
       ...normalizedHireInput,
       status,
       spentMonthlyCents: 0,
@@ -715,6 +724,7 @@ export function agentRoutes(db: Db) {
       assertBoard(req);
     }
 
+    const agentId = randomUUID();
     const requestedAdapterConfig = applyCreateDefaultsByAdapterType(
       req.body.adapterType,
       ((req.body.adapterConfig ?? {}) as Record<string, unknown>),
@@ -724,10 +734,17 @@ export function agentRoutes(db: Db) {
       requestedAdapterConfig,
       { strictMode: strictSecretsMode },
     );
+    const materializedAdapterConfig = await materializeRepoTrackedAgentTemplate({
+      agentId,
+      role: req.body.role ?? "general",
+      adapterType: req.body.adapterType ?? "process",
+      adapterConfig: normalizedAdapterConfig,
+    });
 
     const agent = await svc.create(companyId, {
+      id: agentId,
       ...req.body,
-      adapterConfig: normalizedAdapterConfig,
+      adapterConfig: materializedAdapterConfig,
       status: "idle",
       spentMonthlyCents: 0,
       lastHeartbeatAt: null,

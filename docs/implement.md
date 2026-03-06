@@ -33,9 +33,9 @@ This file defines how implementation work should be executed after the workflow 
 
 Run the full repo verification set before claiming a behavior change is complete:
 
-- `pnpm -r typecheck`
-- `pnpm test:run`
-- `pnpm build`
+- `bun run typecheck`
+- `bun run test:run`
+- `bun run build`
 
 If any check cannot run, record the reason precisely and treat the task as partially verified.
 

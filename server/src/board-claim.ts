@@ -3,6 +3,8 @@ import { and, eq } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { companies, companyMemberships, instanceUserRoles } from "@paperclipai/db";
 import type { DeploymentMode } from "@paperclipai/shared";
+import { syncUserAccessSnapshot } from "./control-plane-client.js";
+import { logger } from "./middleware/logger.js";
 
 const LOCAL_BOARD_USER_ID = "local-board";
 const CLAIM_TTL_MS = 1000 * 60 * 60 * 24;
@@ -145,5 +147,8 @@ export async function claimBoardOwnership(
     activeChallenge.claimedByUserId = opts.userId;
   }
 
+  void syncUserAccessSnapshot(db, opts.userId).catch((err) => {
+    logger.warn({ err, userId: opts.userId }, "failed to sync claimed board ownership to control plane");
+  });
   return { status: "claimed", claimedByUserId: opts.userId };
 }

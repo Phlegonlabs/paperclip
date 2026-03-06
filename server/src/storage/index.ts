@@ -15,6 +15,11 @@ function signatureForConfig(config: Config): string {
     s3Endpoint: config.storageS3Endpoint,
     s3Prefix: config.storageS3Prefix,
     s3ForcePathStyle: config.storageS3ForcePathStyle,
+    r2Bucket: config.storageR2Bucket,
+    r2AccountId: config.storageR2AccountId,
+    r2Endpoint: config.storageR2Endpoint,
+    r2AccessKeyId: config.storageR2AccessKeyId,
+    r2Prefix: config.storageR2Prefix,
   });
 }
 

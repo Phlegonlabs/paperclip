@@ -79,8 +79,66 @@ This file tracks the structured execution plan for the current Paperclip repo ba
 
 ### M3-T2 — Restore reproducible verification on a fully provisioned environment
 
-- Goal: ensure `pnpm -r typecheck`, `pnpm test:run`, and `pnpm build` can be run reliably on a machine with dependencies installed.
+- Goal: ensure `bun run typecheck`, `bun run test:run`, and `bun run build` can be run reliably on a machine with dependencies installed.
 - Deliverables: validation evidence and any required environment/setup adjustments
+- Commit Boundary: exactly one atomic commit
+
+### M3-T3 — Fix Windows migration path resolution across all Postgres entrypoints
+
+- Goal: make migration inspection, apply, and empty-db bootstrap use filesystem-safe paths on Windows instead of `file://` URL pathnames.
+- Deliverables: centralized `packages/db` migration path helper, regression tests, and backlog/task sync
+- Commit Boundary: exactly one atomic commit
+
+## Milestone M4 — Bun + Cloudflare Migration
+
+### M4-T1 — Replace the legacy package-manager repo contract with Bun
+
+- Goal: switch the workspace, lockfile, Docker build, root scripts, and canonical contributor commands to Bun without leaving dual-package-manager drift.
+- Deliverables: root `package.json`, `bun.lock`, Docker/dev script updates, contributor/public docs sync
+- Commit Boundary: exactly one atomic commit
+
+### M4-T2 — Add same-origin Cloudflare control-plane workspace
+
+- Goal: land a Bun-managed Worker app that can own static asset fallback, `/api/health`, and the `/api/companies/:companyId/events/ws` route shape under one domain.
+- Deliverables: `apps/control-plane/` workspace, Wrangler config, Worker entrypoint, Durable Object realtime skeleton
+- Commit Boundary: exactly one atomic commit
+
+### M4-T2a — Harden Worker realtime auth and internal event transport
+
+- Goal: make the same-origin Worker realtime route safe enough to accept authenticated browser and agent traffic without changing the public UI contract.
+- Deliverables: minimal D1 auth/access snapshot for realtime, internal publish/sync routes, signed Durable Object handoff, HTML-only SPA fallback behavior, targeted Worker tests
+- Commit Boundary: exactly one atomic commit
+
+### M4-T3 — Extend storage and secret provider contracts for Cloudflare deployment
+
+- Goal: make `r2` and `cloudflare_encrypted` first-class provider contracts in shared/server configuration before the runtime cutover.
+- Deliverables: shared config/types/constants updates plus server provider registry support
+- Commit Boundary: exactly one atomic commit
+
+### M4-T4 — Complete Cloudflare runtime cutover backlog
+
+- Goal: track the remaining move of auth, realtime authorization, persistence, scheduler, and executor callbacks from `server/` into the Worker stack.
+- Deliverables: explicit backlog items in `tasks/todo.md` with no hidden migration debt
+- Commit Boundary: exactly one atomic commit
+
+## Milestone M5 — Agent Template Baseline
+
+### M5-T1 — Ship repo-tracked lightweight agent templates
+
+- Goal: turn the product's conceptual default-agent/default-CEO story into a real repo-owned template library aligned with the existing role taxonomy.
+- Deliverables: `agents/<role>/AGENTS.md`, `HEARTBEAT.md`, `SOUL.md`, and `TOOLS.md` for each shipped role
+- Commit Boundary: exactly one atomic commit
+
+### M5-T2 — Materialize local agent templates at creation time
+
+- Goal: keep repo templates as the canonical defaults while giving each created local agent an isolated editable copy.
+- Deliverables: server-side template materialization for local adapters plus regression tests for template copy behavior
+- Commit Boundary: exactly one atomic commit
+
+### M5-T3 — Repoint onboarding and project-owned GitHub links to this fork
+
+- Goal: remove remaining upstream persona/bootstrap links and make product-owned references resolve to `Phlegonlabs/paperclip`.
+- Deliverables: onboarding default copy, shared repo-link helper/constants, README/docs/package metadata sync
 - Commit Boundary: exactly one atomic commit
 
 ## Milestone PR — Production Readiness Gate
@@ -94,7 +152,7 @@ This file tracks the structured execution plan for the current Paperclip repo ba
 ### PR-T2 — Verification gate
 
 - Goal: pass the repo’s standard validation suite in a provisioned environment.
-- Deliverables: successful `pnpm -r typecheck`, `pnpm test:run`, and `pnpm build`
+- Deliverables: successful `bun run typecheck`, `bun run test:run`, and `bun run build`
 - Commit Boundary: exactly one atomic commit
 
 ### PR-T3 — Hook safety gate

@@ -12,7 +12,9 @@ import {
   heartbeatRuns,
 } from "@paperclipai/db";
 import { isUuidLike, normalizeAgentUrlKey } from "@paperclipai/shared";
+import { syncAgentApiKeySnapshot } from "../control-plane-client.js";
 import { conflict, notFound, unprocessable } from "../errors.js";
+import { logger } from "../middleware/logger.js";
 import { normalizeAgentPermissions } from "./agent-permissions.js";
 import { REDACTED_EVENT_VALUE, sanitizeRecord } from "../redaction.js";
 
@@ -315,15 +317,22 @@ export function agentService(db: Db) {
       const existing = await getById(id);
       if (!existing) return null;
 
+      const revokedAt = new Date();
       await db
         .update(agents)
         .set({ status: "terminated", updatedAt: new Date() })
         .where(eq(agents.id, id));
 
-      await db
+      const revokedKeys = await db
         .update(agentApiKeys)
-        .set({ revokedAt: new Date() })
-        .where(eq(agentApiKeys.agentId, id));
+        .set({ revokedAt })
+        .where(eq(agentApiKeys.agentId, id))
+        .returning();
+      for (const key of revokedKeys) {
+        void syncAgentApiKeySnapshot(key).catch((err) => {
+          logger.warn({ err, keyId: key.id }, "failed to sync terminated agent key to control plane");
+        });
+      }
 
       return getById(id);
     },
@@ -338,6 +347,7 @@ export function agentService(db: Db) {
         await tx.delete(agentTaskSessions).where(eq(agentTaskSessions.agentId, id));
         await tx.delete(heartbeatRuns).where(eq(heartbeatRuns.agentId, id));
         await tx.delete(agentWakeupRequests).where(eq(agentWakeupRequests.agentId, id));
+        const existingKeys = await tx.select().from(agentApiKeys).where(eq(agentApiKeys.agentId, id));
         await tx.delete(agentApiKeys).where(eq(agentApiKeys.agentId, id));
         await tx.delete(agentRuntimeState).where(eq(agentRuntimeState.agentId, id));
         const deleted = await tx
@@ -345,6 +355,15 @@ export function agentService(db: Db) {
           .where(eq(agents.id, id))
           .returning()
           .then((rows) => rows[0] ?? null);
+        const revokedAt = new Date();
+        for (const key of existingKeys) {
+          void syncAgentApiKeySnapshot({
+            ...key,
+            revokedAt,
+          }).catch((err) => {
+            logger.warn({ err, keyId: key.id }, "failed to sync deleted agent key to control plane");
+          });
+        }
         return deleted ? normalizeAgentRow(deleted) : null;
       });
     },
@@ -443,6 +462,9 @@ export function agentService(db: Db) {
         })
         .returning()
         .then((rows) => rows[0]);
+      void syncAgentApiKeySnapshot(created).catch((err) => {
+        logger.warn({ err, keyId: created.id }, "failed to sync created agent key to control plane");
+      });
 
       return {
         id: created.id,
@@ -464,11 +486,17 @@ export function agentService(db: Db) {
         .where(eq(agentApiKeys.agentId, id)),
 
     revokeKey: async (keyId: string) => {
+      const revokedAt = new Date();
       const rows = await db
         .update(agentApiKeys)
-        .set({ revokedAt: new Date() })
+        .set({ revokedAt })
         .where(eq(agentApiKeys.id, keyId))
         .returning();
+      if (rows[0]) {
+        void syncAgentApiKeySnapshot(rows[0]).catch((err) => {
+          logger.warn({ err, keyId }, "failed to sync revoked agent key to control plane");
+        });
+      }
       return rows[0] ?? null;
     },
 
